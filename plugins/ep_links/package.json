@@ -1,0 +1,21 @@
+{
+  "description": "Add support for different Fonts",
+  "name": "ep_links",
+  "version": "0.2.7",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "John McLear",
+    "email": "john@mclear.co.uk"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "ep_etherpad-lite": ">=1.5.1"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JohnMcLear/ep_font_family.git"
+  }
+}
