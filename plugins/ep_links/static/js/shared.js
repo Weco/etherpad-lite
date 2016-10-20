@@ -3,9 +3,9 @@ exports.collectContentPre = function(hook, context) {
   var state = context.state;
   var lineAttributes = state.lineAttributes
   var tagIndex = tname;
-  var fonts = ['fontarial'];
+  var tags = ['padlink'];
 
-  if (fonts.indexOf(tname) !== -1){
+  if (tags.indexOf(tname) !== -1){
     context.cc.doAttrib(state, tname);
   }
 };

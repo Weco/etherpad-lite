@@ -39,8 +39,8 @@ $(document).ready(function () {
 				ace.ace_performSelectionChange([rep.selStart[0], rep.selStart[1] - padName.length], rep.selStart, false);
 			}
 
-			ace.ace_performDocumentApplyAttributesToRange(rep.selStart, rep.selEnd, [['fontarial', padName]]);
-		}, 'fontarial');
+			ace.ace_performDocumentApplyAttributesToRange(rep.selStart, rep.selEnd, [['padlink', padName]]);
+		}, 'padlink');
 	}
 
 	function randomPadName() {

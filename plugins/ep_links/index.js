@@ -1,5 +1,5 @@
 var eejs = require('ep_etherpad-lite/node/eejs/');
-var fonts = ["fontarial"];
+var tags = ['padlink'];
 var fs = require('fs');
 
 /********************
@@ -37,10 +37,11 @@ exports.eejsBlock_styles = function(hook, args, cb) {
 
 // Allow <whatever> to be an attribute
 exports.aceAttribClasses = function(hook, attr, cb) {
-  for (var i in fonts){
-    var font = fonts[i];
-    attr[font] = 'tag:font'+font;
+  for (var i in tags){
+    var tag = tags[i];
+    attr[tag] = 'tag:tag' + tag;
   };
+
   cb(attr);
 }
 
@@ -58,7 +59,7 @@ exports.stylesForExport = function(hook, padId, cb) {
 
 // Add the props to be supported in export
 exports.exportHtmlAdditionalTags = function(hook, pad, cb) {
-  cb(fonts);
+  cb(tags);
 };
 
 
@@ -68,11 +69,11 @@ exports.asyncLineHTMLForExport = function(hook, context, cb) {
 
 function rewriteLine(context) {
   var lineContent = context.lineContent;
-  fonts.forEach(function(font){
-    if(lineContent){
-      var fontName = font.substring(4);
-      lineContent = lineContent.replaceAll("<"+font, "<span style='font-family:"+fontName+"'");
-      lineContent = lineContent.replaceAll("</"+font, "</span");
+
+  tags.forEach(function(tag){
+    if (lineContent) {
+      lineContent = lineContent.replaceAll('<' + tag, '<span');
+      lineContent = lineContent.replaceAll('</' + tag, '</span');
     }
   });
   return lineContent;
