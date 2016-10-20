@@ -3,7 +3,7 @@
     {
       "name": "main",
       "client_hooks": {
-        "postAceInit": "ep_links/static/js/index",
+        "postToolbarInit": "ep_links/static/js/index",
         "aceRegisterBlockElements": "ep_links/static/js/index",
         "aceAttribsToClasses": "ep_links/static/js/index",
         "aceAttribClasses":"ep_links/static/js/index",
@@ -13,6 +13,9 @@
         "aceEditorCSS": "ep_links/static/js/index"
       },
       "hooks": {
+        "eejsBlock_body": "ep_links/index",
+        "eejsBlock_styles": "ep_links/index",
+        "eejsBlock_scripts": "ep_links/index",
         "eejsBlock_editbarMenuLeft": "ep_links/index",
         "collectContentPre": "ep_links/static/js/shared",
         "collectContentPost": "ep_links/static/js/shared",
