@@ -1,6 +1,6 @@
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
 var padeditor = require('ep_etherpad-lite/static/js/pad_editor').padeditor;
-var tags = ['fontarial'];
+var fonts = ['fontarial'];
 
 exports.postToolbarInit = function(hook, context, cb) {
 	context.toolbar.registerDropdownCommand('linksModal:open', 'links_modal');
@@ -20,7 +20,7 @@ exports.aceEditEvent = function(hook, call, cb) {
   }
 
   setTimeout(function() {
-    $.each(tags, function(key, value) {
+    $.each(fonts, function(key, value) {
       if (call.editorInfo.ace_getAttributeOnSelection(value)) {
         call.editorInfo.ace_setAttributeOnSelection(value, true);
       }
@@ -29,17 +29,17 @@ exports.aceEditEvent = function(hook, call, cb) {
 }
 
 exports.aceAttribsToClasses = function(hook, context) {
-  if (tags.indexOf(context.key) !== -1) {
+  if (fonts.indexOf(context.key) !== -1) {
     return [context.key];
   }
 }
 
 exports.aceRegisterBlockElements = function() {
-  return tags;
+  return fonts;
 }
 
 exports.aceAttribClasses = function(hook, attr) {
-  $.each(tags, function(key, value) {
+  $.each(fonts, function(key, value) {
     attr[value] = 'tag:' + value;
   });
 
