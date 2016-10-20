@@ -40,7 +40,7 @@ $(document).ready(function () {
 			}
 
 			ace.ace_performDocumentApplyAttributesToRange(rep.selStart, rep.selEnd, [['padlink', padName]]);
-		}, 'padlink');
+		}, 'padlink', true);
 	}
 
 	function randomPadName() {

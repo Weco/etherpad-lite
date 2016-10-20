@@ -29,6 +29,7 @@ exports.aceEditEvent = function(hook, call, cb) {
 }
 
 exports.aceAttribsToClasses = function(hook, context) {
+	// TODO called when padLink from modals.js
   if (tags.indexOf(context.key) !== -1) {
     return [context.key];
   }
