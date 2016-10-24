@@ -1,4 +1,5 @@
 var $ = require('ep_etherpad-lite/static/js/rjquery').$;
+var _ = require('ep_etherpad-lite/static/js/underscore');
 var padeditor = require('ep_etherpad-lite/static/js/pad_editor').padeditor;
 var tags = ['padlink'];
 
@@ -7,31 +8,9 @@ exports.postToolbarInit = function(hook, context, cb) {
 	return cb();
 };
 
-// To do show what font family is active on current selection
-exports.aceEditEvent = function(hook, call, cb) {
-  var cs = call.callstack;
-
-  if (!(cs.type == 'handleClick') && !(cs.type == 'handleKeyEvent') && !(cs.docTextChanged)){
-    return false;
-  }
-
-  if (cs.type == 'setBaseText' || cs.type == 'setup') {
-    return false;
-  }
-
-  setTimeout(function() {
-    $.each(tags, function(key, value) {
-      if (call.editorInfo.ace_getAttributeOnSelection(value)) {
-        call.editorInfo.ace_setAttributeOnSelection(value, true);
-      }
-    });
-  }, 250);
-}
-
 exports.aceAttribsToClasses = function(hook, context) {
-	// TODO called when padLink from modals.js
-  if (tags.indexOf(context.key) !== -1) {
-    return [context.key];
+  if (context.key == 'padlink') {
+    return ['padlink:' + context.value];
   }
 }
 
@@ -49,4 +28,21 @@ exports.aceAttribClasses = function(hook, attr) {
 
 exports.aceEditorCSS = function(hook, cb) {
   return ['/ep_links/static/css/iframe.css'];
+}
+
+function doInsertPadlink(padName) {
+  var rep = this.rep;
+  var documentAttributeManager = this.documentAttributeManager;
+
+	if (!(rep.selStart && rep.selEnd)) {
+		return;
+	}
+
+	documentAttributeManager.setAttributesOnRange(rep.selStart, rep.selEnd, [['padlink', padName]]);
+}
+
+// Once ace is initialized, we set ace_doInsertHeading and bind it to the context
+exports.aceInitialized = function(hook, context) {
+  var editorInfo = context.editorInfo;
+  editorInfo.ace_doInsertPadlink = _(doInsertPadlink).bind(context);
 }

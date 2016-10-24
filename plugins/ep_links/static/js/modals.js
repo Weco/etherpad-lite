@@ -31,15 +31,7 @@ $(document).ready(function () {
 
 	function insertPadLink(padName) {
 		padeditor.ace.callWithAce(function(ace) {
-			rep = ace.ace_getRep();
-
-			// If there is no selection, insert pad name
-			if (rep.selEnd[1] - rep.selStart[1] === 0) {
-				ace.ace_replaceRange(rep.selStart, rep.selEnd, padName);
-				ace.ace_performSelectionChange([rep.selStart[0], rep.selStart[1] - padName.length], rep.selStart, false);
-			}
-
-			ace.ace_performDocumentApplyAttributesToRange(rep.selStart, rep.selEnd, [['padlink', padName]]);
+			ace.ace_doInsertPadlink(padName);
 		}, 'padlink', true);
 	}
 

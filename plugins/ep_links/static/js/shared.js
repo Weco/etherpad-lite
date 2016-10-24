@@ -5,7 +5,7 @@ exports.collectContentPre = function(hook, context) {
   var tagIndex = tname;
   var tags = ['padlink'];
 
-  if (tags.indexOf(tname) !== -1){
+  if (tags.indexOf(tname) !== -1) {
     context.cc.doAttrib(state, tname);
   }
 };

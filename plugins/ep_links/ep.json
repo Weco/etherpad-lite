@@ -9,8 +9,8 @@
         "aceAttribClasses":"ep_links/static/js/index",
         "collectContentPre": "ep_links/static/js/shared",
         "collectContentPost": "ep_links/static/js/shared",
-        "aceEditEvent": "ep_links/static/js/index",
-        "aceEditorCSS": "ep_links/static/js/index"
+        "aceEditorCSS": "ep_links/static/js/index",
+        "aceInitialized": "ep_links/static/js/index"
       },
       "hooks": {
         "eejsBlock_body": "ep_links/index",
