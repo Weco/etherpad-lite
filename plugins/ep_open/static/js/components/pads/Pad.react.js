@@ -35,7 +35,7 @@ export default class Pad extends Base {
 
         this.state.isHierarchyActive && props.actions.addLayoutMode('pad_hierarchy');
         this.state.isFullscreenActive && props.actions.addLayoutMode('pad_fullscreen');
-        props.actions.fetchPadsByIds(this.tabs);
+        this.tabs.length && props.actions.fetchPadsByIds(this.tabs);
 		props.actions.setCurrentPad(currentTab);
 
         this.cancelOpenPadSubscription = messages.subscribe('openPad', padId => {
@@ -57,7 +57,7 @@ export default class Pad extends Base {
         }
 
         if (nextProps.params.padId !== this.props.params.padId) {
-            this.props.actions.setCurrentPad(nextProps.params.padId);
+            this.props.actions.setCurrentPad(nextProps.params.padId || 'root');
         }
     }
 
@@ -90,7 +90,7 @@ export default class Pad extends Base {
 
         this.props.pads.forEach(pad => padsObject[pad.id] = pad);
 
-        return this.tabs.map(tab => padsObject[tab]);
+        return this.tabs.filter(tab => tab !== 'root').map(tab => padsObject[tab]);
     }
 
     buildTabs() {
@@ -108,7 +108,7 @@ export default class Pad extends Base {
 
 	render() {
         const { currentPad } = this.props;
-        const title = `${currentPad.title && currentPad.id !== 'root' ? (currentPad.title + ' | ') : ''}Open Companies`;
+        const title = `${currentPad.title && currentPad.id !== 'root' ? (currentPad.title + ' | ') : ''}Wikineering`;
 
 		return (
             <DocumentTitle title={title}>
@@ -141,10 +141,11 @@ export default class Pad extends Base {
 
         if (etherpadId) {
             const unloadedIframes = [];
+            const pad = this.getPads();
 
             Array.prototype.forEach.call(this.refs.iframes.querySelectorAll('.pad__iframe'), el => el.className = 'pad__iframe');
 
-            this.getPads().some((pad, index) => {
+            (pad.length ? pad : [this.props.currentPad]).some((pad, index) => {
                 if (!pad) return true;
 
                 const isCurrent = pad.etherpadId === etherpadId;

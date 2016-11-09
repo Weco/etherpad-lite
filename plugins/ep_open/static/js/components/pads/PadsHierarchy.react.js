@@ -165,7 +165,7 @@ export default class PadsHierarchy extends Base {
                         <div className={classNames('pad__hierarchy__node pad__hierarchy__node--root pad__hierarchy__node--main', {
                                 'pad__hierarchy__node--active': this.props.currentPad.id === 'root'
                             })}>
-                            <div className='pad__hierarchy__node__title' onClick={this.goToPad.bind(this, ['root'])}>Open companies</div>
+                            <div className='pad__hierarchy__node__title' onClick={this.goToPad.bind(this, ['root'])}>Wikineering</div>
                         </div>
                         {this.props.padsHierarchy ? this.buildList(this.props.padsHierarchy.children || [], ['root']) : null}
                     </div>

@@ -5,16 +5,14 @@ $borderColor: #e5e5e5;
 	padding: 8px;
 	z-index: 1;
 	overflow: hidden;
-	background: #eee;
+	background: $greyColor;
 	height: 20px;
 	box-sizing: content-box;
 }
 
 .header__logo {
-	@include icon('logo-single', true, false);
+	@include icon('logo', true, false);
 	float: left;
-	transform: scale(0.6);
-	transform-origin: 0 0;
 	margin: -3px -8px 0 -2px;
 }
 

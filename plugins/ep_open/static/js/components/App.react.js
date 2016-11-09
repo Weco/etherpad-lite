@@ -55,7 +55,7 @@ class App extends Component {
 		}
 
 		return (
-			<DocumentTitle title="Open Companies">
+			<DocumentTitle title="Wikineering">
 				<div className={classNames(layoutClassNames, {
 						'layout--modal': isModal,
 						'layout--authorized': isAuthorized,
