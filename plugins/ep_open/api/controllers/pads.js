@@ -53,7 +53,7 @@ module.exports = api  => {
 					id: 'root',
 					type: 'root',
 					etherpadId: 'root',
-					title: 'Open companies'
+					title: 'Wikineering'
 				});
 			} else {
 				return responseError(response, 'Pad is not found');
