@@ -61,8 +61,8 @@ export default class PadLinkModal extends Base {
 
 	insertLink() {
 		if (this.linkId && this.props.pad) {
-			messages.send('newPadLink', {
-				id: this.linkId,
+			messages.send('newLink', {
+				value: this.linkId,
 				etherpadId: this.props.pad.etherpadId,
 				title: this.linkTitle
 			});
@@ -93,8 +93,8 @@ export default class PadLinkModal extends Base {
 				url = "http://" + url;
 			}
 
-			messages.send('newPadLink', {
-				id: url,
+			messages.send('newLink', {
+				value: url,
 				etherpadId: this.props.pad.etherpadId,
 				title: this.state.externalLink
 			});

@@ -6,7 +6,7 @@ $(document).ready(function () {
 		window.top.pm.send('toggleLinkModal');
 	});
 
-	window.top.pm.subscribe('newPadLink', function(data) {
+	window.top.pm.subscribe('newLink', function(data) {
 		if (data.etherpadId === pad.getPadId()) {
 			var padeditor = require('ep_etherpad-lite/static/js/pad_editor').padeditor;
 
@@ -19,7 +19,7 @@ $(document).ready(function () {
 					ace.ace_performSelectionChange([rep.selEnd[0], rep.selEnd[1] - data.title.length], rep.selEnd, false);
 				}
 
-				ace.ace_performDocumentApplyAttributesToRange(rep.selStart, rep.selEnd, [['link', data.id]]);
+				ace.ace_performDocumentApplyAttributesToRange(rep.selStart, rep.selEnd, [['link', data.value]]);
 			}, 'link');
 		}
 	});

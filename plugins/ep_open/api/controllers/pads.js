@@ -161,10 +161,10 @@ function getPadChildren(pad) {
 	Changeset.eachAttribNumber(pad.atext.attribs, attributeNumber => {
 		const attribute = pad.pool.numToAttrib[attributeNumber];
 
-		if (typeof attribute === 'object' && attribute[0] === 'padLink') {
+		if (typeof attribute === 'object' && attribute[0] === 'link') {
 			const linkId = attribute[1];
 
-			if (linkId) {
+			if (linkId && !/^(f|ht)tps?:\/\//i.test(linkId)) {
 				children.push(linkId);
 			}
 		}
