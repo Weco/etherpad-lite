@@ -37,6 +37,7 @@ export default class PadsHierarchy extends Base {
 			expandedNodes: expandedNodes
 		};
 		this.width = window.sessionStorage.hierarchyPanelWidth || 240;
+		this.expandPathToCurrentPad(this.props.currentPad);
 
 		if (props.isActive) {
 			this.state.isActive = true;
@@ -57,6 +58,11 @@ export default class PadsHierarchy extends Base {
 
 		if (nextProps.padsHierarchy !== this.props.padsHierarchy) {
 			this.setState({ isLoading: false });
+			this.expandPathToCurrentPad(this.props.currentPad, nextProps.padsHierarchy);
+		}
+
+		if (nextProps.currentPad !== this.props.currentPad) {
+			this.expandPathToCurrentPad(nextProps.currentPad);
 		}
 	}
 
@@ -67,11 +73,33 @@ export default class PadsHierarchy extends Base {
 		this.setState({ isActive: false });
 	}
 
-	toggleNode(nodeId) {
-		const expandedNodes = Object.assign({}, this.state.expandedNodes, {
-			[nodeId]: !this.state.expandedNodes[nodeId]
-		});
+	expandPathToCurrentPad(currentPad, hierarchy = this.props.padsHierarchy) {
+		const currentId = currentPad && currentPad.id;
 
+		if (hierarchy && currentId) {
+			const expandedNodes = Object.assign({}, this.state.expandedNodes);
+			const step = (nodes, path) => {
+				nodes.forEach(node => {
+					if (node.id === currentId) {
+						path.forEach(node => expandedNodes[node] = true);
+					} else if (node.children) {
+						step(node.children, path.concat(node.id));
+					}
+				});
+			};
+
+			hierarchy.children && step(hierarchy.children, []);
+			this.setExpandedNodes(expandedNodes);
+		}
+	}
+
+	toggleNode(nodeId) {
+		this.setExpandedNodes(Object.assign({}, this.state.expandedNodes, {
+			[nodeId]: !this.state.expandedNodes[nodeId]
+		}));
+	}
+
+	setExpandedNodes(expandedNodes) {
 		this.setState({ expandedNodes });
 		window.sessionStorage.setItem('expandedNodes', JSON.stringify(expandedNodes));
 	}
