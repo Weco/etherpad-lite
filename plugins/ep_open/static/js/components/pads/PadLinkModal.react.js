@@ -22,7 +22,8 @@ export default class PadLinkModal extends Base {
 
 		this.state = {
 			isActive: false,
-			isCompanyLink: false
+			isCompanyLink: false,
+			externalLink: ''
 		};
 
 		this.linkId = null;
@@ -85,27 +86,21 @@ export default class PadLinkModal extends Base {
 	}
 
 	insertExternalLink() {
-		if (this.linkHref) {
+		if (this.state.externalLink) {
+			let url = this.state.externalLink;
+
+			if (!/^(f|ht)tps?:\/\//i.test(url)) {
+				url = "http://" + url;
+			}
+
 			messages.send('newPadLink', {
-				id: this.linkHref,
+				id: url,
 				etherpadId: this.props.pad.etherpadId,
-				title: this.linkTitle
+				title: this.state.externalLink
 			});
 			this.toggleLinkModal();
+			this.setState({ externalLink: '' });
 		}
-	}
-
-	onExternalLinkChange(event) {
-		this.linkHref = this.addhttp(event.target.value);
-		this.setState({ hasExternalLink: !!event.target.value });
-	}
-
-	addhttp(url) {
-		if (!/^(f|ht)tps?:\/\//i.test(url)) {
-			url = "http://" + url;
-		}
-
-		return url;
 	}
 
 	render() {
@@ -113,8 +108,12 @@ export default class PadLinkModal extends Base {
 			<div className={classNames('pad__modal pad__modal--link', { 'pad__modal--active': this.state.isActive })}>
 				<div className='pad__modal__inner'>
 					<div className='pad__modal__content'>
-						<h1 className='pad__modal__title'>Add link</h1>
-						<input className='pad__just-link-input' type="text" placeholder="http://example.com" onChange={this.onExternalLinkChange.bind(this)} />
+						<h1 className='pad__modal__title'>Add external link</h1>
+						<input
+							className='pad__just-link-input'
+							type="text"
+							placeholder="http://example.com"
+							valueLink={this.linkState('externalLink')} />
 						<button className='btn' onClick={this.insertExternalLink.bind(this)}>Add</button>
 						<div className='pad__modal__separator'></div>
 						<h1 className='pad__modal__title'>Add link to another pad</h1>

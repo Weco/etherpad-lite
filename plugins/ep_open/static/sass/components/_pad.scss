@@ -132,15 +132,8 @@
 	right: 20px;
 	width: 80%;
 	max-width: 500px;
-	height: 0;
-	transition: height .3s;
-	overflow: hidden;
+	display: none;
 	z-index: 100;
-
-	.pad__modal__content {
-		opacity: 0;
-		transition: opacity .3s;
-	}
 
 	.btn {
 		float: right;
@@ -188,15 +181,7 @@
 }
 
 .pad__modal--active {
-	overflow: visible;
-
-	.pad__modal__content {
-		opacity: 1;
-	}
-
-	&.pad__modal--link {
-		height: 162px;
-	}
+	display: block;
 }
 
 .pad__modal__inner {
