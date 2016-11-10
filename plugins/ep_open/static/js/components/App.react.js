@@ -43,7 +43,7 @@ class App extends Component {
 	render() {
 		const { location, user, layoutModes } = this.props;
 		const isAuthorized = user && user.id;
-	    const isModal = (
+		const isModal = (
 			location.state &&
 			location.state.modal
 		);

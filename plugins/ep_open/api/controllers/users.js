@@ -30,7 +30,7 @@ function updateAuthorName(token, user) {
 }
 
 module.exports = api => {
-	api.get('/users', async(function*(request, response) {
+	api.get('/users', async(function*(request) {
 		const page = (parseInt(request.query.page, 10) || 1) - 1;
 		const perPage = parseInt(request.query.perPage, 10) || 50;
 		let where = {};
@@ -53,11 +53,11 @@ module.exports = api => {
 		});
 	}));
 
-	api.get('/users/:id', async(function*(request, response) {
+	api.get('/users/:id', async(function*(request) {
 		return yield User.findById(request.params.id);
 	}));
 
-	api.post('/users', async(function*(request, response) {
+	api.post('/users', async(function*(request) {
 		request.checkBody('email', 'Email is required').notEmpty();
 		request.checkBody('nickname', 'Nickname is required').notEmpty();
 		request.checkBody('password', 'Password is required').notEmpty();
@@ -73,7 +73,7 @@ module.exports = api => {
 	}));
 
 	api.put('/users/:id', async(function*(request, response) {
-		if (!(request.token && request.token.user && request.token.user.id == request.params.id)) {
+		if (!(request.token && request.token.user && request.token.user.id === request.params.id)) {
 			return responseError(response, 'You have no permission for this operation', 403);
 		}
 
@@ -95,7 +95,7 @@ module.exports = api => {
 	}));
 
 	api.delete('/users/:id', async(function*(request, response) {
-		if (!(request.token && request.token.user && request.token.user.id == request.params.id)) {
+		if (!(request.token && request.token.user && request.token.user.id === request.params.id)) {
 			return responseError(response, 'You have no permission for this operation', 403);
 		}
 
@@ -103,7 +103,7 @@ module.exports = api => {
 	}));
 
 	api.put('/users/:id/privileges', async(function*(request, response) {
-		if (!(request.token && request.token.user && request.token.user.role == 'admin')) {
+		if (!(request.token && request.token.user && request.token.user.role === 'admin')) {
 			return responseError(response, 'You have no permission for this operation', 403);
 		}
 
