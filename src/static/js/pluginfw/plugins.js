@@ -116,11 +116,11 @@ exports.getPackages = function (cb) {
           delete packages[name].dependencies;
           delete packages[name].parent;
         }
-      
+
         if (deps[name].dependencies !== undefined) flatten(deps[name].dependencies);
       });
     }
-  
+
     var tmp = {};
     tmp[data.name] = data;
     flatten(tmp);
@@ -129,6 +129,7 @@ exports.getPackages = function (cb) {
 };
 
 function loadPlugin(packages, plugin_name, plugins, parts, cb) {
+  if (!packages[plugin_name].path) return;
   var plugin_path = path.resolve(packages[plugin_name].path, "ep.json");
   fs.readFile(
     plugin_path,
