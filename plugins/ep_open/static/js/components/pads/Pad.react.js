@@ -78,9 +78,12 @@ export default class Pad extends Base {
 	onIframeClick(event) {
 		if (event.target.className === 'pad__iframe__screen') {
 			const currentTabIndex = this.tabs.indexOf(this.props.currentPad.id);
+			const leftOffset = this.refs.iframes.getBoundingClientRect().left;
+			// Calculate index of clicked pad, where 120px is top pad offset
+			const padIndex = Math.floor((event.clientX - leftOffset) / 120);
 
-			if (currentTabIndex > 0) {
-				this.goToTab(this.tabs[currentTabIndex - 1]);
+			if (padIndex !== currentTabIndex && padIndex < this.tabs.length - 1) {
+				this.goToTab(this.tabs[padIndex]);
 			}
 		}
 	}
