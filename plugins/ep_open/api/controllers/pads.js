@@ -10,7 +10,6 @@ const helpers = require('../common/helpers');
 const socketio = require('../common/socketio');
 const async = helpers.async;
 const responseError = helpers.responseError;
-const checkAuth = helpers.checkAuth;
 const collectData = helpers.collectData;
 const randomString = helpers.randomString;
 const promiseWrapper = helpers.promiseWrapper;
@@ -25,7 +24,7 @@ const rootHierarchy = {
 co.wrap(buildRootHierarchy)();
 
 module.exports = api  => {
-	api.get('/pads', async(function*(request, response) {
+	api.get('/pads', async(function*(request) {
 		const page = (parseInt(request.query.page, 10) || 1) - 1;
 		const perPage = parseInt(request.query.perPage, 10) || 50;
 		const where = {};
@@ -68,7 +67,7 @@ module.exports = api  => {
 		return pad;
 	}));
 
-	api.post('/pads', async(function*(request, response) {
+	api.post('/pads', async(function*(request) {
 		request.checkBody('title', 'Title is required').notEmpty();
 		request.checkErrors();
 
@@ -126,7 +125,7 @@ module.exports = api  => {
 		return yield pad.destroy();
 	}));
 
-	api.get('/pads/:id/hierarchy', async(function*(request, response) {
+	api.get('/pads/:id/hierarchy', async(function*(request) {
 		const id = request.params.id;
 
 		if (id === 'root') {
@@ -184,7 +183,7 @@ function getPadChildren(pad) {
 function* buildHierarchy(id, store, depth) {
 	if (store[id]) {
 		return store[id];
-	};
+	}
 
 	const pad = yield Pad.scope('full').findById(id);
 

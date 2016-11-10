@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { branch } from 'baobab-react/decorators';
 import { Link } from 'react-router';
-import classNames from 'classnames';
 import { logout } from '../actions/user';
 
 @branch({
@@ -17,7 +16,7 @@ class Header extends Component {
 	render() {
 		return (
 			<header className='header'>
-				<Link to='/' className='header__logo'></Link>
+				<Link to='/' className='header__logo' />
 				{this.props.userSync ? (
 					!!this.props.user ? (
 						<div className='header__links'>
@@ -60,7 +59,7 @@ class Header extends Component {
 						</div>
 					)
 				) : ''}
-	        </header>
+			</header>
 		);
 	}
 }
