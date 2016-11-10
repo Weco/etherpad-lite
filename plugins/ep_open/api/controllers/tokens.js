@@ -1,6 +1,5 @@
 'use strict';
 
-const http = require('http');
 const moment = require('moment');
 const helpers = require('../common/helpers');
 const async = helpers.async;
@@ -10,7 +9,7 @@ const User = require('../models/user');
 const Token = require('../models/token');
 
 module.exports = api => {
-	api.get('/tokens/:id', async(function*(request, response) {
+	api.get('/tokens/:id', async(function*(request) {
 		return yield Token.findById(request.params.id);
 	}));
 
@@ -43,7 +42,7 @@ module.exports = api => {
 	}));
 
 
-	api.delete('/tokens/:id', async(function*(request) {
+	api.delete('/tokens/:id', async(function*(request, response) {
 		const token = yield Token.findById(request.params.id);
 
 		if (!token) {

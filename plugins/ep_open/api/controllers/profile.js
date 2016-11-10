@@ -13,15 +13,14 @@ const checkAuth = helpers.checkAuth;
 const responseError = helpers.responseError;
 const checkUserUniq = require('./users').checkUserUniq;
 const updateAuthorName = require('./users').updateAuthorName;
-const User = require('../models/user');
 
 module.exports = api => {
     api.get('/profile', checkAuth, async(function*(request, response) {
-        return request.token.user;
+		return request.token.user;
     }));
 
 	api.put('/profile', checkAuth, async(function*(request, response) {
-        const user = request.token.user;
+		const user = request.token.user;
 
 		if (!user) {
 			return responseError(response, 'User is not found');
@@ -29,13 +28,13 @@ module.exports = api => {
 
 		request.cookies.token && updateAuthorName(request.cookies.token, user);
 
-        yield checkUserUniq(request.body);
+		yield checkUserUniq(request.body);
 
 		return yield user.update(request.body);
 	}));
 
 	api.post('/profile/avatar', checkAuth, async(function*(request, response) {
-        const user = request.token.user;
+		const user = request.token.user;
 
 		if (!user) {
 			return responseError(response, 'User is not found');
@@ -71,7 +70,7 @@ module.exports = api => {
 	}));
 
 	api.put('/profile/password', checkAuth, async(function*(request, response) {
-        const user = request.token.user;
+		const user = request.token.user;
 
 		request.checkBody('current', 'Current password is required').notEmpty();
 		request.checkBody('new', 'New password is required').notEmpty();

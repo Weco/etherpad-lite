@@ -1,6 +1,6 @@
 html {
 	color: $textColor;
-    font: 14px/16px $mainFont;
+	font: 14px/16px $mainFont;
 }
 
 html, body, #app-root {
@@ -29,9 +29,9 @@ a {
 }
 
 .for_authorized {
-    visibility: hidden;
+	visibility: hidden;
 
-    .layout--authorized & {
-        visibility: visible;
-    }
+	.layout--authorized & {
+		visibility: visible;
+	}
 }

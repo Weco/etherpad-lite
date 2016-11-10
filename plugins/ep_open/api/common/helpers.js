@@ -8,7 +8,7 @@ exports.async = gen => {
 
 	if (gen.length === 4) {
 		return function(error, request, response, next) {
-		  return fn(error, request, response, next).catch(next);
+			return fn(error, request, response, next).catch(next);
 		}
 	}
 
@@ -144,4 +144,4 @@ function filterReputation(companyId, data) {
 	});
 
 	return data;
-};
+}

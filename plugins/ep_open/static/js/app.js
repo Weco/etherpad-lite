@@ -6,7 +6,6 @@ import { Root } from 'baobab-react/wrappers';
 import tree from './store';
 import App from './components/App.react';
 import Pad from './components/pads/Pad.react';
-import PadsSearch from './components/pads/PadsSearch.react';
 import PadForm from './components/pads/PadForm.react';
 import SignIn from './components/user/SignIn.react';
 import SignUp from './components/user/SignUp.react';
@@ -34,6 +33,6 @@ function init() {
 			</Router>
 		</Root>
 	), document.getElementById('app-root'));
-};
+}
 
 window.onload = init;

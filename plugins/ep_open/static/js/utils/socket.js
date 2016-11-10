@@ -6,5 +6,5 @@ const port = location.port === '' ? (location.protocol === 'https:' ? 443 : 80) 
 const url = `${location.protocol}//${location.hostname}:${port}/`;
 
 export default io.connect(url, {
-    path: '/api_socket'
+	path: '/api_socket'
 });
