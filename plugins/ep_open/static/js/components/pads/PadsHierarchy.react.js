@@ -6,6 +6,7 @@ import { branch } from 'baobab-react/decorators';
 import Draggable from 'react-draggable';
 import Base from '../Base.react';
 import Spinner from '../common/Spinner.react';
+import EditableText from '../common/EditableText.react';
 import * as actions from '../../actions/pads';
 
 @branch({
@@ -139,7 +140,9 @@ export default class PadsHierarchy extends Base {
 						) : null}
 						<div
 							className='pad__hierarchy__node__title'
-							onClick={this.goToPad.bind(this, path.concat(node.id))}>{node.title}</div>
+							onClick={this.goToPad.bind(this, path.concat(node.id))}>
+							<EditableText text={node.title} save={title => this.props.actions.updatePad(node.id, { title })} />
+						</div>
 						{node.children ? this.buildList(node.children, path.concat(node.id)) : null}
 					</div>
 				))}

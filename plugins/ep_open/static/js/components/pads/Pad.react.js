@@ -5,6 +5,7 @@ import { branch } from 'baobab-react/decorators';
 import DocumentTitle from 'react-document-title';
 import messages from '../../utils/messages';
 import Base from '../Base.react';
+import EditableText from '../common/EditableText.react';
 import PadsHierarchy from './PadsHierarchy.react';
 import PadLinkModal from './PadLinkModal.react';
 import * as padsActions from '../../actions/pads';
@@ -96,17 +97,33 @@ export default class Pad extends Base {
 		return this.tabs.filter(tab => tab !== 'root').map(tab => padsObject[tab]);
 	}
 
+	onTabClick(padId) {
+		if (padId !== this.props.currentPad.id) {
+			this.goToTab(padId);
+		}
+	}
+
 	buildTabs() {
-		return this.getPads().map(pad => (
-			pad ? (
+		return this.getPads().map(pad => {
+			if (!pad) {
+				return null;
+			}
+
+			const isCurrent = pad.id === this.props.currentPad.id;
+
+			return (
 				<div
 					key={pad.id}
 					className={classNames('pad__tab', {
-						'pad__tab--active': pad.id === this.props.currentPad.id
+						'pad__tab--active': isCurrent
 					})}
-					onClick={this.goToTab.bind(this, pad.id)}>{pad.title}</div>
-			) : null
-		));
+					onClick={this.onTabClick.bind(this, pad.id)}>
+					{isCurrent ? (
+						<EditableText text={pad.title} save={title => this.props.actions.updateCurrentPad({ title })} />
+					) : pad.title}
+				</div>
+			);
+		});
 	}
 
 	render() {

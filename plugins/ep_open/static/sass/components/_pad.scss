@@ -77,6 +77,15 @@
 			top: 12px;
 		}
 	}
+
+	.editable .input {
+		top: -1px;
+		right: -8px;
+		bottom: -1px;
+		left: -8px;
+		padding: 2px 7px;
+		width: calc(100% + 16px);
+	}
 }
 
 .pad__tab--active {
@@ -396,6 +405,10 @@
 		right: -10px;
 		background: darken($greyColor, 1%);
 		z-index: -1;
+	}
+
+	&:not(:hover) .editable:not(.editable--active) .fa-pencil {
+		display: none;
 	}
 }
 
