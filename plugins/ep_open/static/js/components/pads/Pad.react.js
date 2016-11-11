@@ -83,7 +83,7 @@ export default class Pad extends Base {
 			const padIndex = Math.floor((event.clientX - leftOffset) / 120);
 
 			if (padIndex !== currentTabIndex && padIndex < this.tabs.length - 1) {
-				this.goToTab(this.tabs[padIndex]);
+				this.goToTab(this.getPads()[padIndex].id);
 			}
 		}
 	}
