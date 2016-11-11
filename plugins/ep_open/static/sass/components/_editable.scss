@@ -1,0 +1,20 @@
+.editable {
+	position: relative;
+	display: inline-block;
+
+	.fa-pencil {
+		margin-left: 6px;
+	}
+
+	.input {
+		position: absolute;
+		top: -2px;
+		right: -5px;
+		bottom: -2px;
+		left: -5px;
+		font: inherit;
+		padding: 2px 4px;
+		width: calc(100% + 8px);
+		margin: 0;
+	}
+}

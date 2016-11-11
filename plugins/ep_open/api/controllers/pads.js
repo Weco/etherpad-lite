@@ -97,6 +97,7 @@ module.exports = api  => {
 
 	api.put('/pads/:id', async(function*(request, response) {
 		const pad = yield Pad.scope('full').findById(request.params.id);
+		const padTitle = pad.title;
 
 		if (!pad) {
 			return responseError(response, 'Pad is not found');
@@ -107,6 +108,13 @@ module.exports = api  => {
 		// }
 
 		yield pad.update(collectData(request, { body: ['title', 'description'] }));
+
+		if (pad.title !== padTitle && rootHierarchy.store[pad.etherpadId]) {
+			updateRootHierarchy({
+				id: pad.id,
+				title: pad.title
+			});
+		}
 
 		return pad;
 	}));
@@ -248,4 +256,24 @@ function* buildRootHierarchy() {
 
 	rootHierarchy.object = rootPad;
 	socketio.emit('rootPadsHierarchy', rootPad);
+}
+
+/**
+ * Update node in root hierarchy
+ * @param {Object} updatedNode - Object with updated node
+ */
+function updateRootHierarchy(updatedNode) {
+	if (!_.isEmpty(rootHierarchy.object)) {
+		const step = node => {
+			if (node.id === updatedNode.id) {
+				console.log('UPDATE_NODE', node, updatedNode);
+				Object.assign(node, updatedNode);
+			}
+
+			node.children && node.children.forEach(step);
+		}
+
+		step(rootHierarchy.object);
+		socketio.emit('rootPadsHierarchy', rootHierarchy.object);
+	}
 }

@@ -73,7 +73,7 @@ export function createPad(tree, data = {}) {
 	.catch(errorHandler(tree));
 }
 
-export function updatePad(tree, data) {
+export function updateCurrentPad(tree, data) {
 	const currentPadId = getCurrentPadId(tree);
 
 	if (currentPadId) {
@@ -82,6 +82,21 @@ export function updatePad(tree, data) {
 			data
 		})
 		.then(pad => tree.selectedItem('currentPad').set(pad))
+		.catch(errorHandler(tree));
+	}
+}
+
+export function updatePad(tree, padId, data) {
+	if (padId) {
+		request(`/pads/${padId}`, {
+			method: 'PUT',
+			data
+		})
+		.then(updatedPad => {
+			tree.set('pads', tree.get('pads').map(pad => {
+				return pad.id === updatedPad.id ? Object.assign({}, pad, updatedPad) : pad;
+			}));
+		})
 		.catch(errorHandler(tree));
 	}
 }
