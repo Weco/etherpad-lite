@@ -1,7 +1,10 @@
 /* These CSS rules are included in both the outer and inner ACE iframe.
    Also see inner.css, included only in the inner one.
 */
-html { cursor: text; } /* in Safari, produces text cursor for whole doc (inc. below body) */
+html {
+  cursor: text; /* in Safari, produces text cursor for whole doc (inc. below body) */
+  height: 100%;
+}
 span { cursor: auto; }
 
 ::selection {
@@ -97,6 +100,7 @@ body.grayedout { background-color: #eee !important }
   line-height: 22px; /* overridden by body.style */
   background-color: white;
   color: black;
+  min-height: 95%;
 }
 
 body.doesWrap {

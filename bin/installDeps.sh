@@ -73,6 +73,7 @@ echo "Ensure that all dependencies are up to date...  If this is the first time 
   cd node_modules
   [ -e ep_etherpad-lite ] || ln -s ../src ep_etherpad-lite
   [ -e ep_links ] || ln -s ../plugins/ep_links ep_links
+  [ -e ep_copy_paste_images ] || ln -s ../plugins/ep_copy_paste_images ep_copy_paste_images
   if [ ! -e ep_open ]; then
     ln -s ../plugins/ep_open ep_open;
     cd ep_open;
