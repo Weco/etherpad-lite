@@ -1,0 +1,49 @@
+.image{
+  display: inline-block;
+  position: relative;
+  padding: 0 !important;
+  margin: 10px 0;
+}
+
+.image > img {
+  width: 100% !important;
+  height: auto !important;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.image > .resizer {
+  position: absolute;
+  width: 13px;
+  height: 12px;
+  background: black;
+  display: none;
+}
+
+.image:hover > .resizer {
+  display: block;
+}
+
+.resizer--nw {
+  left: 0;
+  top: 0;
+  cursor: nwse-resize;
+}
+
+.resizer--ne {
+  right: 0;
+  top: 0;
+  cursor: nesw-resize;
+}
+
+.resizer--sw {
+  left: 0;
+  bottom: 0;
+  cursor: nesw-resize;
+}
+
+.resizer--se {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+}
