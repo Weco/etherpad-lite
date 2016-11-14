@@ -86,7 +86,7 @@ exports.postAceInit = function(hook,context) {
       var isLeftSide = $resizer.hasClass('resizer--nw') || $resizer.hasClass('resizer--sw');
       var clientX = event.clientX;
       var imageWidth = $image.width();
-      var imageLine = $image.parents("div");;
+      var imageLine = $image.parents('div');
       var lineNumber = imageLine.prevAll().length;
       var newSize = imageWidth;
 
@@ -97,7 +97,7 @@ exports.postAceInit = function(hook,context) {
 
       $inner.on('mousemove.resizer', function(event) {
         newSize = imageWidth + (isLeftSide ? -1 : 1) * (event.clientX - clientX);
-        $image.width(newSize);
+        imageLine.find('.image').width(newSize);
       });
 
       $inner.on('mouseup.resizer', function(event) {
@@ -150,28 +150,25 @@ exports.aceDomLineProcessLineAttributes = function(name, context) {
   var exp = /(?:^| )img:([^>]*)/;
   var expSize = /(?:^| )imgSize:((\S+))/;
   var imgType = exp.exec(cls);
+  var image = imgType && imgType[1] ? (imgType[1] + '>') : null;
+
+  if (!image) return [];
+
   var imgSize = expSize.exec(cls);
-
-  if (!imgType) return [];
-
   var size = parseInt(imgSize && imgSize[1], 10) || 300;
-  var width = 'width:' + size + 'px';
-  var template = '<span class="image" style="' + width + '">';
+
+  var template = '<span id="' + Math.floor((Math.random() * 100000) + 1) + '" class="image" style="width:' + size + 'px">';
 
   template += '<span class="resizer resizer--nw" unselectable="on" contentEditable=false></span>';
   template += '<span class="resizer resizer--ne" unselectable="on" contentEditable=false></span>';
   template += '<span class="resizer resizer--sw" unselectable="on" contentEditable=false></span>';
   template += '<span class="resizer resizer--se" unselectable="on" contentEditable=false></span>';
 
-  if (imgType[1]) {
-    return [{
-      preHtml: template + imgType[1] + '>',
-      postHtml: '</span>',
-      processedMarker: true
-    }];
-  }
-
-  return [];
+  return [{
+    preHtml: template + image,
+    postHtml: '</span>',
+    processedMarker: true
+  }];
 };
 
 // When an image is detected give it a lineAttribute
