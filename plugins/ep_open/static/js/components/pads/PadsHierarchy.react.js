@@ -74,6 +74,10 @@ export default class PadsHierarchy extends Base {
 		this.setState({ isActive: false });
 	}
 
+	openLink(link) {
+		window.open(link, '_blank');
+	}
+
 	expandPathToCurrentPad(currentPad, hierarchy = this.props.padsHierarchy) {
 		const currentId = currentPad && currentPad.id;
 
@@ -138,11 +142,20 @@ export default class PadsHierarchy extends Base {
 								className='pad__hierarchy__node__toggler'
 								onClick={this.toggleNode.bind(this, node.id)} />
 						) : null}
-						<div
-							className='pad__hierarchy__node__title'
-							onClick={this.goToPad.bind(this, path.concat(node.id))}>
-							<EditableText text={node.title} save={title => this.props.actions.updatePad(node.id, { title })} />
-						</div>
+						{node.type === 'external' ? (
+							<div
+								className='pad__hierarchy__node__title'
+								onClick={this.openLink.bind(this, node.id)}>
+								{node.title}
+								<i className='fa fa-external-link' />
+							</div>
+						) : (
+							<div
+								className='pad__hierarchy__node__title'
+								onClick={this.goToPad.bind(this, path.concat(node.id))}>
+								<EditableText text={node.title} save={title => this.props.actions.updatePad(node.id, { title })} />
+							</div>
+						)}
 						{node.children ? this.buildList(node.children, path.concat(node.id)) : null}
 					</div>
 				))}

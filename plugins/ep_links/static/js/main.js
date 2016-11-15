@@ -6,7 +6,7 @@ $(document).ready(function () {
 		window.top.pm.send('toggleLinkModal');
 	});
 
-	window.top.pm.subscribe('newLink', function(data) {
+	window.top.pm && window.top.pm.subscribe('newLink', function(data) {
 		if (data.etherpadId === pad.getPadId()) {
 			var padeditor = require('ep_etherpad-lite/static/js/pad_editor').padeditor;
 

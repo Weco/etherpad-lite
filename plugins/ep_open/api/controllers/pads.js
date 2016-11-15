@@ -23,7 +23,7 @@ const rootHierarchy = {
 // Build root hierarchy on application launch
 co.wrap(buildRootHierarchy)();
 
-module.exports = api  => {
+module.exports = api => {
 	api.get('/pads', async(function*(request) {
 		const page = (parseInt(request.query.page, 10) || 1) - 1;
 		const perPage = parseInt(request.query.perPage, 10) || 50;
@@ -149,7 +149,7 @@ module.exports.padUpdate = function(hookName, args) {
 	const storedPad = rootHierarchy.store[pad.id];
 
 	if (storedPad) {
-		const children = getPadChildren(pad);
+		const children = getPadLinks(pad);
 
 		if (!_.isEqual(storedPad.children, children)) {
 			logger.debug('PAD LINKS CHANGE', storedPad.children, '=>', children);
@@ -159,26 +159,63 @@ module.exports.padUpdate = function(hookName, args) {
 }
 
 /**
+ * Check whether passed value of link is external link
+ * @param {String} linkValue - Value of link
+ * @return {Boolean} - Boolean flag
+ */
+function isExternalLink(linkValue) {
+	return /^(f|ht)tps?:\/\//i.test(linkValue);
+}
+
+/**
  * Return list of pad's children
  * @param {Object} pad - Etherpad's pad instance
  * @return {Array} - List of children ids
  */
-function getPadChildren(pad) {
-	const children = [];
+function getPadLinks(pad) {
+	const links = [];
+	const textLines = pad.atext.text.slice(0, -1).split('\n');
+	const attribLines = Changeset.splitAttributionLines(pad.atext.attribs, pad.atext.text);
 
-	Changeset.eachAttribNumber(pad.atext.attribs, attributeNumber => {
-		const attribute = pad.pool.numToAttrib[attributeNumber];
+	attribLines.forEach((attrs, index) => {
+		const text = textLines[index];
+		const apool = pad.apool();
 
-		if (typeof attribute === 'object' && attribute[0] === 'link') {
-			const linkId = attribute[1];
+		if (attrs) {
+			const opIter = Changeset.opIterator(attrs);
+			let length = 0;
+			let currentLinkValue;
 
-			if (linkId && !/^(f|ht)tps?:\/\//i.test(linkId)) {
-				children.push(linkId);
+			while (opIter.hasNext()) {
+				const op = opIter.next();
+				const linkValue = Changeset.opAttributeValue(op, 'link', apool);
+
+				if (linkValue) {
+					var linkTitle = text.substr(length, op.chars);
+
+					if (currentLinkValue === linkValue) {
+						links[links.length - 1].title += linkTitle;
+					} else {
+						links.push({
+							value: linkValue,
+							title: linkTitle
+						});
+					}
+
+					currentLinkValue = linkValue;
+				}
+
+				length += op.chars;
 			}
 		}
 	});
 
-	return _.uniq(children);
+	const internalLinks = [];
+	const externalLinks = [];
+
+	_.uniqBy(links, 'value').forEach(link => (isExternalLink(link.value) ? externalLinks : internalLinks).push(link));
+
+	return internalLinks.concat(externalLinks);
 }
 
 /**
@@ -210,13 +247,24 @@ function* buildHierarchy(id, store, depth) {
 	store[id] = Object.assign({}, result);
 
 	if (depth === undefined || (typeof depth === 'number' && --depth >= 0)) {
-		children = getPadChildren(padData);
+		children = getPadLinks(padData);
 
 		if (children.length) {
 			result.children = [];
 
 			for (var i = 0; i < children.length; i++) {
-				const child = yield co.wrap(buildHierarchy)(children[i], store, depth);
+				const linkValue = children[i].value;
+				let child;
+
+				if (isExternalLink(linkValue)) {
+					child = {
+						id: linkValue,
+						title: children[i].title,
+						type: 'external'
+					};
+				} else {
+					child = yield co.wrap(buildHierarchy)(linkValue, store, depth);
+				}
 
 				if (!_.isEmpty(child)) {
 					result.children.push(child);
