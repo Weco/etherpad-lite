@@ -127,7 +127,7 @@ export default class PadLinkModal extends Base {
 							isActive={this.state.isActive}
 							filter={pads => pads.filter(pad => pad.value !== this.props.pad.id)} />
 						<Checkbox
-							label='Add as New Company'
+							label='Add as New Project'
 							checkedLink={this.linkState('isCompanyLink')}
 							disabled={this.state.isSelected} />
 					</div>

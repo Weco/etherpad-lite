@@ -8,7 +8,7 @@
 .pad__tabs {
 	position: absolute;
 	top: -32px;
-	left: 100px;
+	left: 0;
 	right: 150px;
 	height: 32px;
 	overflow: hidden;
@@ -51,6 +51,7 @@
 	cursor: pointer;
 	color: $activeColor;
 	text-decoration: underline;
+	vertical-align: top;
 
 	&:not(:first-child) {
 		margin-left: 16px;
@@ -86,6 +87,11 @@
 		padding: 2px 7px;
 		width: calc(100% + 16px);
 	}
+}
+
+.pad__tab__logo {
+	@include icon('logo', true);
+	display: inline-block;
 }
 
 .pad__tab--active {

@@ -13,7 +13,7 @@ $borderColor: #e5e5e5;
 .header__logo {
 	@include icon('logo', true, true);
 	float: left;
-	margin: -3px -8px 0 -2px;
+	margin: 0 -8px 0 2px;
 }
 
 .header__link {

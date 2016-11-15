@@ -94,7 +94,7 @@ export default class Pad extends Base {
 
 		this.props.pads.forEach(pad => padsObject[pad.id] = pad);
 
-		return this.tabs.filter(tab => tab !== 'root').map(tab => padsObject[tab]);
+		return this.tabs.map(tab => padsObject[tab]);
 	}
 
 	onTabClick(padId) {
@@ -118,9 +118,11 @@ export default class Pad extends Base {
 						'pad__tab--active': isCurrent
 					})}
 					onClick={this.onTabClick.bind(this, pad.id)}>
-					{isCurrent ? (
-						<EditableText text={pad.title} save={title => this.props.actions.updateCurrentPad({ title })} />
-					) : pad.title}
+					{pad.type === 'root' ? (
+						<i className='pad__tab__logo' />
+					) : (
+						isCurrent ? <EditableText text={pad.title} save={title => this.props.actions.updateCurrentPad({ title })} /> : pad.title
+					)}
 				</div>
 			);
 		});
