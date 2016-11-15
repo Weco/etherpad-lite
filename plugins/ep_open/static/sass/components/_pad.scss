@@ -410,6 +410,12 @@
 	&:not(:hover) .editable:not(.editable--active) .fa-pencil {
 		display: none;
 	}
+
+	.fa-external-link {
+		position: relative;
+		top: 1px;
+		left: 8px;
+	}
 }
 
 .pad__modal__separator {
