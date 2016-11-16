@@ -37,6 +37,7 @@
     "react-dom": "^0.14.0",
     "react-draggable": "^2.2.2",
     "react-dropzone": "^3.3.2",
+    "react-reorder": "^2.1.0",
     "react-router": "^2.0.0-rc5",
     "react-select": "^1.0.0-beta12",
     "request-promise": "^2.0.0",

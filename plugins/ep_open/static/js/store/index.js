@@ -20,7 +20,8 @@ const tree = new Baobab({
 	currentPadId: null,
 	currentPad: selectedItem('pads', 'currentPadId'),
 	newPad: null,
-	padsHierarchy: null
+	padsHierarchy: null,
+	padsHistory: []
 });
 const socketSyncMap = {
 	rootPadsHierarchy: 'padsHierarchy'

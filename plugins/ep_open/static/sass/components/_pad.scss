@@ -49,12 +49,21 @@
 	background: #eee;
 	height: 31px;
 	cursor: pointer;
+
+	&:not(:first-child) {
+		margin-left: 16px;
+	}
+
+	.fa {
+		margin-left: 6px;
+	}
+}
+
+.pad__tab--link {
 	color: $activeColor;
 	text-decoration: underline;
 
 	&:not(:first-child) {
-		margin-left: 16px;
-
 		&:after {
 			content: '';
 			position: absolute;
@@ -93,6 +102,32 @@
 	height: 32px;
 	color: $textColor;
 	text-decoration: none;
+}
+
+.pad__tab__separator {
+	display: inline-block;
+	height: 24px;
+	background: #ccc;
+	width: 2px;
+	margin: 3px 0 3px 16px;
+	vertical-align: top;
+}
+
+.pad__tabs__history {
+	display: inline-block;
+	user-select: none;
+
+	.pad__tab {
+		margin-left: 16px;
+
+		&.placeholder {
+			background: #ccc;
+		}
+
+		&.dragged {
+			margin-left: 0;
+		}
+	}
 }
 
 .pad__iframes,

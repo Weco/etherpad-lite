@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import { branch } from 'baobab-react/decorators';
 import DocumentTitle from 'react-document-title';
 import Draggable from 'react-draggable';
+import Reorder from 'react-reorder';
 import messages from '../../utils/messages';
 import Base from '../Base.react';
 import EditableText from '../common/EditableText.react';
@@ -15,7 +16,8 @@ import * as commonActions from '../../actions/common';
 @branch({
 	cursors: {
 		currentPad: ['currentPad'],
-		pads: ['pads']
+		pads: ['pads'],
+		padsHistory: ['padsHistory']
 	},
 	actions: Object.assign({}, padsActions, commonActions)
 })
@@ -145,8 +147,20 @@ export default class Pad extends Base {
 		}
 	}
 
+	onHistoryTabClick(event, entry) {
+		this.props.actions.removePadsHistoryEntry(entry.url);
+
+		if (event.target.className !== 'fa fa-close') {
+			this.props.actions.addPadsHistoryEntry({
+				title: this.props.currentPad.title,
+				url: `/pads/${this.props.currentPad.id}?tabs=${this.tabs.join(',')}`
+			});
+			this.context.router.push(entry.url);
+		}
+	}
+
 	buildTabs() {
-		return this.getPads().map(pad => {
+		const tabs = [this.getPads().map(pad => {
 			if (!pad) {
 				return null;
 			}
@@ -156,7 +170,7 @@ export default class Pad extends Base {
 			return (
 				<div
 					key={pad.id}
-					className={classNames('pad__tab', {
+					className={classNames('pad__tab pad__tab--link', {
 						'pad__tab--active': isCurrent
 					})}
 					onClick={this.onTabClick.bind(this, pad.id)}>
@@ -165,7 +179,31 @@ export default class Pad extends Base {
 					) : pad.title}
 				</div>
 			);
-		});
+		})];
+
+		if (this.props.padsHistory.length) {
+			tabs.push(
+				<div key='separator' className='pad__tab__separator' />,
+				<Reorder
+					key='reorder'
+					itemKey='url'
+					lock='vertical'
+					holdTime='200'
+					list={[].concat(this.props.padsHistory)}
+					template={React.createClass({
+						render: function() {
+							return <span>{this.props.item.title}<i className='fa fa-close' /></span>;
+						}
+					})}
+					callback={(e, m, p, n, reorderedArray) => this.props.actions.setPadHistory(reorderedArray)}
+					itemClicked={this.onHistoryTabClick.bind(this)}
+					listClass='pad__tabs__history'
+					itemClass='pad__tab'
+					disableReorder={false} />
+			);
+		}
+
+		return tabs;
 	}
 
 	render() {
@@ -189,7 +227,7 @@ export default class Pad extends Base {
 						<div className={classNames('pad__resizer', { 'hidden': currentPad.type === 'root' })} ref='resizer' />
 					</Draggable>
 					<PadLinkModal pad={currentPad} createPad={this.props.actions.createPad} />
-					<PadsHierarchy isActive={this.state.isHierarchyActive} />
+					<PadsHierarchy isActive={this.state.isHierarchyActive} currentPad={currentPad} tabs={this.tabs} />
 					<div
 						className='pad__hierarchy_toggler'
 						onClick={this.toggleMode.bind(this, 'isHierarchyActive', 'pad_hierarchy')}>
