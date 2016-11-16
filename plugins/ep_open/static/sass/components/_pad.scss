@@ -49,13 +49,22 @@
 	background: $greyColor;
 	height: 31px;
 	cursor: pointer;
-	color: $activeColor;
-	text-decoration: underline;
 	vertical-align: top;
 
 	&:not(:first-child) {
 		margin-left: 16px;
+	}
 
+	.fa {
+		margin-left: 6px;
+	}
+}
+
+.pad__tab--link {
+	color: $activeColor;
+	text-decoration: underline;
+
+	&:not(:first-child) {
 		&:after {
 			content: '';
 			position: absolute;
@@ -101,6 +110,32 @@
 	text-decoration: none;
 }
 
+.pad__tab__separator {
+	display: inline-block;
+	height: 24px;
+	background: #ccc;
+	width: 2px;
+	margin: 3px 0 3px 16px;
+	vertical-align: top;
+}
+
+.pad__tabs__history {
+	display: inline-block;
+	user-select: none;
+
+	.pad__tab {
+		margin-left: 16px;
+
+		&.placeholder {
+			background: #ccc;
+		}
+
+		&.dragged {
+			margin-left: 0;
+		}
+	}
+}
+
 .pad__iframes,
 .pad__iframe {
 	position: absolute;
@@ -125,8 +160,8 @@
 .pad__iframe__screen {
 	position: absolute;
 	top: 0;
-	left: -1000%;
-	width: 1000%;
+	left: -10000%;
+	width: 10000%;
 	height: 100%;
 	background: rgba(0, 0, 0, .2);
 	z-index: 1;
@@ -140,6 +175,28 @@
 	z-index: 2;
 	border: 0;
 	background: $lightGreyColor;
+}
+
+.pad__resizer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 8px;
+	height: 100%;
+	background: #ccc;
+	border-left: 1px solid #bbb;
+	margin-left: -8px;
+	z-index: 102;
+	cursor: ew-resize;
+
+	&.react-draggable-dragging:after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 100%;
+		width: 400px;
+		height: 100%;
+	}
 }
 
 .pad__modal {

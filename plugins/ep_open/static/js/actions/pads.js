@@ -1,3 +1,5 @@
+import window from 'global';
+import { uniqBy } from 'lodash';
 import request from '../utils/request';
 import { addError, errorHandler } from './errors';
 
@@ -120,4 +122,27 @@ export function fetchHierarchy(tree) {
 	request('/pads/root/hierarchy')
 		.then(hierarchy => tree.set('padsHierarchy', hierarchy))
 		.catch(errorHandler(tree));
+}
+
+export function initPadsHistory(tree) {
+	let padsHistory = [];
+
+	try {
+		padsHistory = JSON.parse(sessionStorage.padsHistory);
+	} catch(e) {}
+
+	tree.set('padsHistory', padsHistory);
+}
+
+export function setPadHistory(tree, padsHistory) {
+	tree.set('padsHistory', padsHistory);
+	window.sessionStorage.setItem('padsHistory', JSON.stringify(padsHistory));
+}
+
+export function addPadsHistoryEntry(tree, entry) {
+	setPadHistory(tree, uniqBy([entry].concat(tree.get('padsHistory')), 'url'));
+}
+
+export function removePadsHistoryEntry(tree, url) {
+	setPadHistory(tree, tree.get('padsHistory').filter(entry => entry.url !== url));
 }

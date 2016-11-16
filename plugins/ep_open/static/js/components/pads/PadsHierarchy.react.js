@@ -19,7 +19,12 @@ import * as actions from '../../actions/pads';
 export default class PadsHierarchy extends Base {
 	static contextTypes = {
 		router: React.PropTypes.object.isRequired
-	}
+	};
+	static propTypes = {
+		isActive: React.PropTypes.bool.isRequired,
+		currentPad: React.PropTypes.object.isRequired,
+		tabs: React.PropTypes.array.isRequired
+	};
 
 	constructor(props) {
 		super(props);
@@ -69,8 +74,25 @@ export default class PadsHierarchy extends Base {
 
 	goToPad(path) {
 		const tabs = path.length > 1 ? `?tabs=${path.join(',')}` : '';
+		const url = `/pads/${path[path.length - 1]}${tabs}`;
+		let isSameBranch = true;
 
-		this.context.router.push(`/pads/${path[path.length - 1]}${tabs}`);
+		for (var i = 0; i < Math.min(path.length, this.props.tabs.length); i++) {
+			if (path[i] !== this.props.tabs[i]) {
+				isSameBranch = false;
+				break;
+			}
+		}
+
+		if (!isSameBranch) {
+			this.props.actions.removePadsHistoryEntry(url);
+			this.props.actions.addPadsHistoryEntry({
+				title: this.props.currentPad.title,
+				url: `/pads/${this.props.currentPad.id}?tabs=${this.props.tabs.join(',')}`
+			});
+		}
+
+		this.context.router.push(url);
 		this.setState({ isActive: false });
 	}
 

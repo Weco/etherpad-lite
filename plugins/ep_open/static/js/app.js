@@ -12,9 +12,11 @@ import SignUp from './components/user/SignUp.react';
 import Profile from './components/user/Profile.react';
 import ProfilePassword from './components/user/ProfilePassword.react';
 import { initToken } from './actions/user';
+import { initPadsHistory } from './actions/pads';
 
 function init() {
 	initToken(tree);
+	initPadsHistory(tree);
 
 	ReactDOM.render((
 		<Root tree={tree}>

@@ -3,6 +3,8 @@ import React from 'react';
 import classNames from 'classnames';
 import { branch } from 'baobab-react/decorators';
 import DocumentTitle from 'react-document-title';
+import Draggable from 'react-draggable';
+import Reorder from 'react-reorder';
 import messages from '../../utils/messages';
 import Base from '../Base.react';
 import EditableText from '../common/EditableText.react';
@@ -14,7 +16,8 @@ import * as commonActions from '../../actions/common';
 @branch({
 	cursors: {
 		currentPad: ['currentPad'],
-		pads: ['pads']
+		pads: ['pads'],
+		padsHistory: ['padsHistory']
 	},
 	actions: Object.assign({}, padsActions, commonActions)
 })
@@ -79,14 +82,55 @@ export default class Pad extends Base {
 	onIframeClick(event) {
 		if (event.target.className === 'pad__iframe__screen') {
 			const currentTabIndex = this.tabs.indexOf(this.props.currentPad.id);
-			const leftOffset = this.refs.iframes.getBoundingClientRect().left;
-			// Calculate index of clicked pad, where 120px is top pad offset
-			const padIndex = Math.floor((event.clientX - leftOffset) / 120);
+			const clientX = event.clientX - this.refs.iframes.getBoundingClientRect().left;
 
-			if (padIndex !== currentTabIndex && padIndex < this.tabs.length - 1) {
-				this.goToTab(this.getPads()[padIndex].id);
+			if (this.currentIframes) {
+				this.currentIframes.reverse().some(iframeItem => {
+					const isMatch = iframeItem.offset < clientX;
+
+					this.goToTab(iframeItem.pad.id);
+
+					return isMatch;
+				});
 			}
 		}
+	}
+
+	updateCurrentPadOffset(offset) {
+		if (this.props.currentPad && this.props.currentPad.etherpadId) {
+			const iframe = document.getElementById(this.props.currentPad.etherpadId);
+
+			if (iframe) {
+				this.refs.resizer.style.left = iframe.style.left = offset + 'px';
+			}
+		}
+	}
+
+	getOffsetFromEvent(event) {
+		return Math.min(Math.max(0, this.currentPadX + event.clientX), this.maxPadOffset);
+	}
+
+	onDragStart(event, data) {
+		this.currentPadX = parseInt(this.refs.resizer.style.left) - event.clientX;
+		this.maxPadOffset = this.refs.iframes.offsetWidth - 100;
+	}
+
+	onDrag(event, data) {
+		this.updateCurrentPadOffset(this.getOffsetFromEvent(event));
+	}
+
+	onDragStop(event, data) {
+		const offset = this.getOffsetFromEvent(event);
+		let padsOffsets = {};
+
+		try {
+			padsOffsets = JSON.parse(window.localStorage.padsOffsets);
+		} catch (e) {}
+
+		padsOffsets[this.props.currentPad.id] = offset;
+		window.localStorage.setItem('padsOffsets', JSON.stringify(padsOffsets));
+
+		this.updateCurrentPadOffset(offset);
 	}
 
 	getPads() {
@@ -103,8 +147,20 @@ export default class Pad extends Base {
 		}
 	}
 
+	onHistoryTabClick(event, entry) {
+		this.props.actions.removePadsHistoryEntry(entry.url);
+
+		if (event.target.className !== 'fa fa-close') {
+			this.props.actions.addPadsHistoryEntry({
+				title: this.props.currentPad.title,
+				url: `/pads/${this.props.currentPad.id}?tabs=${this.tabs.join(',')}`
+			});
+			this.context.router.push(entry.url);
+		}
+	}
+
 	buildTabs() {
-		return this.getPads().map(pad => {
+		const tabs = [this.getPads().map(pad => {
 			if (!pad) {
 				return null;
 			}
@@ -114,7 +170,7 @@ export default class Pad extends Base {
 			return (
 				<div
 					key={pad.id}
-					className={classNames('pad__tab', {
+					className={classNames('pad__tab pad__tab--link', {
 						'pad__tab--active': isCurrent
 					})}
 					onClick={this.onTabClick.bind(this, pad.id)}>
@@ -125,7 +181,31 @@ export default class Pad extends Base {
 					)}
 				</div>
 			);
-		});
+		})];
+
+		if (this.props.padsHistory.length) {
+			tabs.push(
+				<div key='separator' className='pad__tab__separator' />,
+				<Reorder
+					key='reorder'
+					itemKey='url'
+					lock='vertical'
+					holdTime='200'
+					list={[].concat(this.props.padsHistory)}
+					template={React.createClass({
+						render: function() {
+							return <span>{this.props.item.title}<i className='fa fa-close' /></span>;
+						}
+					})}
+					callback={(e, m, p, n, reorderedArray) => this.props.actions.setPadHistory(reorderedArray)}
+					itemClicked={this.onHistoryTabClick.bind(this)}
+					listClass='pad__tabs__history'
+					itemClass='pad__tab'
+					disableReorder={false} />
+			);
+		}
+
+		return tabs;
 	}
 
 	render() {
@@ -141,8 +221,15 @@ export default class Pad extends Base {
 						</div>
 					</div>
 					<div className='pad__iframes' ref='iframes' onClick={this.onIframeClick.bind(this)} />
+					<Draggable
+						axis='none'
+						onStart={this.onDragStart.bind(this)}
+						onDrag={this.onDrag.bind(this)}
+						onStop={this.onDragStop.bind(this)}>
+						<div className={classNames('pad__resizer', { 'hidden': currentPad.type === 'root' })} ref='resizer' />
+					</Draggable>
 					<PadLinkModal pad={currentPad} createPad={this.props.actions.createPad} />
-					<PadsHierarchy isActive={this.state.isHierarchyActive} />
+					<PadsHierarchy isActive={this.state.isHierarchyActive} currentPad={currentPad} tabs={this.tabs} />
 					<div
 						className='pad__hierarchy_toggler'
 						onClick={this.toggleMode.bind(this, 'isHierarchyActive', 'pad_hierarchy')}>
@@ -163,11 +250,16 @@ export default class Pad extends Base {
 
 		if (etherpadId) {
 			const unloadedIframes = [];
-			const pad = this.getPads();
+			let padsOffsets = {};
+			this.currentIframes = [];
+
+			try {
+				padsOffsets = JSON.parse(window.localStorage.padsOffsets);
+			} catch (e) {}
 
 			Array.prototype.forEach.call(this.refs.iframes.querySelectorAll('.pad__iframe'), el => el.className = 'pad__iframe');
 
-			(pad.length ? pad : [this.props.currentPad]).some((pad, index) => {
+			this.getPads().some((pad, index) => {
 				if (!pad) return true;
 
 				const isCurrent = pad.etherpadId === etherpadId;
@@ -203,9 +295,20 @@ export default class Pad extends Base {
 					}
 				}
 
+				let offset = typeof padsOffsets[pad.id] === 'number' ? padsOffsets[pad.id] : 120 * index;
+
 				iframe.className = 'pad__iframe pad__iframe--active';
 				iframe.style.zIndex = index + 1;
-				iframe.style.left = 120 * index + 'px';
+				iframe.style.left = offset + 'px';
+
+				if (isCurrent) {
+					this.refs.resizer.style.left = offset + 'px';
+				}
+
+				this.currentIframes.push({
+					pad,
+					offset
+				});
 
 				return isCurrent;
 			});
