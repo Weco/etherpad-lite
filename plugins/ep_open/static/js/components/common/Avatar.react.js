@@ -26,7 +26,7 @@ export default class Avatar extends Base {
 			if (/^data\:|http/.test(image)) {
 				imageURL = image;
 			} else {
-				imageURL = `https://open-companies.storage.googleapis.com/${image}`;
+				imageURL = `https://open-projects.storage.googleapis.com/${image}`;
 
 				if (imageURL.indexOf('?') === -1) {
 					imageURL += '?' + this.state.timestamp;

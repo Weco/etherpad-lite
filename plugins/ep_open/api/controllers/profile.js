@@ -50,7 +50,7 @@ module.exports = api => {
 			const imageExtension = /^image\//.test(imageType) ? imageType.replace('image/', '') : 'png';
 			const imagePath = `${md5(user.id)}/avatar.${imageExtension}`;
 			const bufferStream = new stream.PassThrough();
-			const file = gstorage.bucket('open-companies').file(imagePath);
+			const file = gstorage.bucket('open-projects').file(imagePath);
 
 			bufferStream.end(new Buffer(imageBase64, 'base64'));
 

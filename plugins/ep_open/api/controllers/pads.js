@@ -2,6 +2,12 @@
 
 const _ = require('lodash');
 const co = require('co');
+const stream = require('stream');
+const gcloud = require('gcloud');
+const gstorage = gcloud.storage({
+	projectId: 'cool-plasma-778',
+	keyFilename: './google_cloud_key_f738e3f5d4ca.json'
+});
 const md5 = require('md5');
 const padManager = require('ep_etherpad-lite/node/db/PadManager');
 const Changeset = require("ep_etherpad-lite/static/js/Changeset");
@@ -141,6 +147,37 @@ module.exports = api => {
 		} else {
 			return yield co.wrap(buildHierarchy)(id, {});
 		}
+	}));
+
+	api.post('/pads/images', async(function*(request) {
+		request.checkBody('image', 'Image is required').notEmpty();
+		request.checkErrors();
+
+		const imagePath = yield new Promise((resolve, reject) => {
+			const imageMatch = request.body.image.match(/data\:([^;]*);base64,(.*)/);
+			const imageType = imageMatch[1];
+			const imageBase64 = imageMatch[2];
+			const imageExtension = /^image\//.test(imageType) ? imageType.replace('image/', '') : 'png';
+			const imagePath = `${md5(Math.random(0, 100000))}/image.${imageExtension}`;
+			const bufferStream = new stream.PassThrough();
+			const bucket = 'open-projects';
+			const file = gstorage.bucket(bucket).file(imagePath);
+
+			bufferStream.end(new Buffer(imageBase64, 'base64'));
+
+			bufferStream
+				.pipe(file.createWriteStream({
+					metadata: {
+						contentType: imageType
+					}
+				}))
+				.on('error', reject)
+				.on('finish', function() {
+					file.makePublic(error => error ? reject(error) : resolve(`http://storage.googleapis.com/${bucket}/${imagePath}`));
+				});
+		});
+
+		return { imagePath };
 	}));
 };
 
