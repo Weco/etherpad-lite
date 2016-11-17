@@ -53,7 +53,7 @@ exports.collectContentPre = function(hook, context) {
 };
 
 function getLinkValue(context) {
-	if (context.cls.indexOf('link:') >= 0) {
+	if (context.cls && context.cls.indexOf('link:') >= 0) {
 		var argClss = context.cls.split(' ');
 		var value;
 
