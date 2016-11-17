@@ -98,7 +98,7 @@ export default class Profile extends Base {
 						<Dropzone
 							className='avatar__upload'
 							onDrop={this.handleFileDrop.bind(this)}
-							accept='image/png,image/jpg'
+							accept='image/*'
 							multiple={false} />
 						{this.state.avatarPreview ? (
 							<div className='avatar__editor'>

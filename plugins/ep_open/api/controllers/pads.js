@@ -13,6 +13,7 @@ const responseError = helpers.responseError;
 const collectData = helpers.collectData;
 const randomString = helpers.randomString;
 const promiseWrapper = helpers.promiseWrapper;
+const uploadImage = helpers.uploadImage;
 const User = require('../models/user');
 const Pad = require('../models/pad');
 const rootHierarchy = {
@@ -141,6 +142,15 @@ module.exports = api => {
 		} else {
 			return yield co.wrap(buildHierarchy)(id, {});
 		}
+	}));
+
+	api.post('/pads/images', async(function*(request) {
+		request.checkBody('image', 'Image is required').notEmpty();
+		request.checkErrors();
+
+		const imagePath = yield uploadImage(request.body.image);
+
+		return { imagePath };
 	}));
 };
 

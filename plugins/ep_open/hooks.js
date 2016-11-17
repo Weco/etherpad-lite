@@ -16,7 +16,7 @@ exports.expressCreateServer = function(hookName, args) {
 
 	app.use(helmet());
 	app.use(bodyParser.json({ limit: '50mb' }));
-	app.use(bodyParser.urlencoded({ extended: true }));
+	app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 	app.use(validator());
 	app.use(cookieParser(settings.sessionKey, {}));
 	app.use(express.static(__dirname + '/static'));

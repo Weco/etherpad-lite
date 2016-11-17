@@ -30,24 +30,44 @@ exports.postAceInit = function(hook,context) {
     $inner.on("drop", function(e) {
       e = e.originalEvent;
       var file = e.dataTransfer.files[0];
+
       if(!file) return;
-      //don't try to mess with non-image files
+
       if (file.type.match('image.*')) {
         var reader = new FileReader();
+        var domLine = $(e.target);
+        var lineNumber;
+
+        if (e.target.tagName.toLowerCase() !== 'div') {
+          domLine = domLine.parents('div');
+        }
+
+        lineNumber = domLine.prevAll().length;
+
         reader.onload = (function(theFile) {
-          //get the data uri
-          var dataURI = theFile.target.result;
-          //make a new image element with the dataURI as the source
-          var img = document.createElement("img");
-          img.src = dataURI;
-          // Now to insert the base64 encoded image into the pad
-          context.ace.callWithAce(function(ace) {
-            var rep = ace.ace_getRep();
-            var size = Math.min(img.width, $inner.width());
+          padeditbar.toggleDropDown('image_uploading_modal');
+          $.ajax({
+            type: 'post',
+            url: '/api/pads/images',
+            data: {
+              image: theFile.target.result
+            },
+            success: function(data) {
+              var img = document.createElement('img');
 
-            ace.ace_addImage(rep, img.src, size);
-          }, 'img', true);
+              img.src = data.imagePath;
+              context.ace.callWithAce(function(ace) {
+                var size = Math.min(img.width, $inner.width());
 
+                ace.ace_addImage(lineNumber, img.src, size);
+              }, 'img', true);
+
+              padeditbar.toggleDropDown('image_uploading_modal');
+            }, error: function(error) {
+              console.error('Uploading error', error);
+              padeditbar.toggleDropDown('image_uploading_modal');
+            }
+          });
         });
         reader.readAsDataURL(file);
       }
@@ -97,7 +117,7 @@ exports.postAceInit = function(hook,context) {
 
       $inner.on('mousemove.resizer', function(event) {
         newSize = imageWidth + (isLeftSide ? -1 : 1) * (event.clientX - clientX);
-        imageLine.find('.image').width(newSize);
+        $inner.children().eq(lineNumber).find('.image').width(newSize);
       });
 
       $inner.on('mouseup.resizer', function(event) {
@@ -118,8 +138,7 @@ exports.postAceInit = function(hook,context) {
 
 var image = {
   setImageSize: function(size, lineNumber) {
-    var documentAttributeManager = this.documentAttributeManager;
-    documentAttributeManager.setAttributeOnLine(lineNumber, 'imgSize', size); // make the line a task list
+    this.documentAttributeManager.setAttributeOnLine(lineNumber, 'imgSize', size); // make the line a task list
   },
 
   removeImage: function(lineNumber) {
@@ -130,11 +149,11 @@ var image = {
     documentAttributeManager.removeAttributeOnLine(lineNumber, 'imgSize'); // make the line a task list
   },
 
-  addImage: function(rep, src, size) {
+  addImage: function(lineNumber, src, size) {
     var documentAttributeManager = this.documentAttributeManager;
-    var lineNumber = rep.selStart[0]; // Get the line number
+
     // This errors for some reason..
-    src = "<img src="+src+">";
+    src = '<img src=' + src + '>';
     documentAttributeManager.setAttributeOnLine(lineNumber, 'img', src); // make the line a task list
     documentAttributeManager.setAttributeOnLine(lineNumber, 'imgSize', size); // make the line a task list
   }
@@ -207,3 +226,8 @@ exports.collectContentPost = function(name, context) {
 exports.ccRegisterBlockElements = function (name, context) {
   return ['img'];
 }
+
+exports.postToolbarInit = function(hookName, context, cb) {
+	context.toolbar.registerDropdownCommand('imageUploadingModal:open', 'image_uploading_modal');
+	return cb();
+};

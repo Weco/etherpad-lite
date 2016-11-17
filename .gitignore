@@ -17,5 +17,6 @@ npm-debug.log
 .ep_initialized
 *.crt
 *.key
+google_cloud_*.json
 bin/etherpad-1.deb
 credentials.json
