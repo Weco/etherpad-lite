@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import Select from 'react-select';
 import { branch } from 'baobab-react/decorators';
 import request from '../../utils/request';
@@ -34,13 +35,32 @@ export default class PadsSearchBox extends Base {
 			}));
 		};
 
-		this.clearValue = this.clearValue.bind(this);
 		this.filterValue = '';
 	}
 
 	componentWillReceiveProps(nextProps) {
 		if (nextProps.isActive !== this.props.isActive) {
-			this.padChange(null);
+			setTimeout(() => {
+				const selectEl = ReactDOM.findDOMNode(this.refs.select);
+				const selectFilterEl = selectEl.querySelector('input');
+
+				if (selectFilterEl) {
+					const inputEvent = document.createEvent('Event');
+					const blurEvent = document.createEvent('Event');
+
+					inputEvent.initEvent('input', true, true);
+					blurEvent.initEvent('blur', true, true);
+
+					selectFilterEl.value = ' ';
+					selectFilterEl.dispatchEvent(inputEvent);
+					selectFilterEl.value = '';
+					selectFilterEl.dispatchEvent(inputEvent);
+					selectFilterEl.dispatchEvent(blurEvent);
+				}
+
+				this.padChange(null);
+				this.filterChange('');
+			});
 		}
 	}
 
@@ -52,8 +72,11 @@ export default class PadsSearchBox extends Base {
 		});
 	}
 
-	clearValue() {
-		this.setState({ selectedPad: null });
+	filterChange(filterValue) {
+		if (filterValue !== this.filterValue && this.props.onFilterChange) {
+			this.filterValue = filterValue;
+			this.props.onFilterChange(this.filterValue);
+		}
 	}
 
 	filterSelectOptions(options, filterValue) {
@@ -63,10 +86,7 @@ export default class PadsSearchBox extends Base {
 			filteredOptions = this.props.filter(filteredOptions);
 		}
 
-		if (filterValue !== this.filterValue && this.props.onFilterChange) {
-			this.filterValue = filterValue;
-			setTimeout(() => this.props.onFilterChange(this.filterValue));
-		}
+		this.filterChange(filterValue);
 
 		return filteredOptions;
 	}
@@ -74,13 +94,13 @@ export default class PadsSearchBox extends Base {
 	render() {
 		return (
 			<Select.Async
+				ref='select'
 				name='pad-name'
 				placeholder='Pad name'
 				value={this.state.selectedPad}
 				isLoading={this.state.isLoading}
 				onChange={this.padChange.bind(this)}
 				ignoreCase={false}
-				searchable={this.props.isActive}
 				onBlurResetsInput={false}
 				searchPromptText={false}
 				loadingPlaceholder=''

@@ -82,7 +82,9 @@ export default class PadLinkModal extends Base {
 	}
 
 	onSearchBoxFilterChange(linkTitle) {
-		this.linkTitle = linkTitle;
+		if (!this.linkId) {
+			this.linkTitle = linkTitle;
+		}
 	}
 
 	insertExternalLink() {
