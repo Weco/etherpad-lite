@@ -44,6 +44,12 @@ exports.postAceInit = function(hook,context) {
 
         lineNumber = domLine.prevAll().length;
 
+        // If it's the last line of editor, insert one more line. Otherwise user will not be able insert new line
+        // after image
+        if (!domLine.next().length) {
+          domLine.after('<div />');
+        }
+
         reader.onload = (function(theFile) {
           padeditbar.toggleDropDown('image_uploading_modal');
           $.ajax({
@@ -80,9 +86,8 @@ exports.postAceInit = function(hook,context) {
     // Note we check the line number has actually changed, if not a drag start/end
     // to the same location would cause the image to be deleted!
     $inner.on("dragend", ".image", function(e) {
-      var id = e.currentTarget.id;
-      var imageContainer = $inner.find("#"+id);
-      var imageLine = $inner.find("."+id).parents("div");
+      var imageContainer = $(e.currentTarget);
+      var imageLine = imageContainer.parents("div");
       var oldLineNumber = imageLine.prevAll().length;
       context.ace.callWithAce(function(ace){
         var rep = ace.ace_getRep();
@@ -117,18 +122,28 @@ exports.postAceInit = function(hook,context) {
 
       $inner.on('mousemove.resizer', function(event) {
         newSize = imageWidth + (isLeftSide ? -1 : 1) * (event.clientX - clientX);
-        $inner.children().eq(lineNumber).find('.image').width(newSize);
+        var imageLine = $inner.children().eq(lineNumber);
+        var assoc = imageLine[0]['_magicdom_dirtiness'];
+
+        imageLine.find('.image').width(newSize);
+
+        // Ace does checks for dirtinnes in the code, and then clean all dirty dom elements, once we update image size
+        // during resizing directly, dom changes will be treated as dirty and became the reasom of wierd behaivior.
+        // To prevent that do manual update of cached assoc object.
+        if (assoc && assoc.knownHTML) {
+          assoc.knownHTML = imageLine.html();
+        }
       });
 
       $inner.on('mouseup.resizer', function(event) {
-        context.ace.callWithAce(function(ace) {
-          ace.ace_setImageSize(newSize, lineNumber);
-        }, 'img', true);
-
         $inner
           .css('user-select', 'inherit')
           .attr('contentEditable', 'inherit')
           .off('.resizer');
+
+          context.ace.callWithAce(function(ace) {
+            ace.ace_setImageSize(newSize, lineNumber);
+          }, 'img', true);
       });
     });
 
@@ -176,7 +191,7 @@ exports.aceDomLineProcessLineAttributes = function(name, context) {
   var imgSize = expSize.exec(cls);
   var size = parseInt(imgSize && imgSize[1], 10) || 300;
 
-  var template = '<span id="' + Math.floor((Math.random() * 100000) + 1) + '" class="image" style="width:' + size + 'px">';
+  var template = '<span class="image" style="width:' + size + 'px">';
 
   template += '<span class="resizer resizer--nw" unselectable="on" contentEditable=false></span>';
   template += '<span class="resizer resizer--ne" unselectable="on" contentEditable=false></span>';
