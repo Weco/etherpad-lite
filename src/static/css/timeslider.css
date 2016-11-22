@@ -216,12 +216,12 @@ stepper:active{
   width: 185px;
 }
 .timeslider-bar {
-  background: #f7f7f7;
-  background: -webkit-linear-gradient(#f7f7f7, #f1f1f1 80%);
-  background: -moz-linear-gradient(#f7f7f7, #f1f1f1 80%);
-  background: -o-linear-gradient(#f7f7f7, #f1f1f1 80%);
-  background: -ms-linear-gradient(#f7f7f7, #f1f1f1 80%);
-  background: linear-gradient(#f7f7f7, #f1f1f1 80%);
+  background: #fcfcfc;
+  background: -webkit-linear-gradient(#fcfcfc, #fefefe 80%);
+  background: -moz-linear-gradient(#fcfcfc, #fefefe 80%);
+  background: -o-linear-gradient(#fcfcfc, #fefefe 80%);
+  background: -ms-linear-gradient(#fcfcfc, #fefefe 80%);
+  background: linear-gradient(#fcfcfc, #fefefe 80%);
   overflow: hidden;
   padding-top: 3px;
   width: 100%;
