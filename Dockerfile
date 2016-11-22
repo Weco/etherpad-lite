@@ -13,7 +13,6 @@ WORKDIR /opt/etherpad
 # Install plugins
 RUN npm install \
     ep_align \
-    ep_author_neat \
     ep_comments_page \
     ep_embedmedia \
     ep_headings2 \

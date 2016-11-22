@@ -554,8 +554,8 @@ function handleUserInfoUpdate(client, message)
   //Find out the author name of this session
   var author = session.author;
 
-  // Check colorId is a Hex color
-  var isColor  = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(message.data.userInfo.colorId) // for #f00 (Thanks Smamatti)
+  // Check colorId is a Hex color or number in color pallete
+  var isColor  = /(^[0-9]+$)|(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(message.data.userInfo.colorId) // for #f00 (Thanks Smamatti)
   if(!isColor){
     messageLogger.warn("Dropped message, USERINFO_UPDATE Color is malformed." + message.data);
     return;
@@ -583,8 +583,8 @@ function handleUserInfoUpdate(client, message)
     }
   };
 
-  //Send the other clients on the pad the update message
-  client.broadcast.to(padId).json.send(infoMsg);
+  // Send the other clients the update message
+  client.broadcast.json.send(infoMsg);
 }
 
 /**
@@ -936,7 +936,7 @@ function handleSwitchToPad(client, message)
   var currentSession = sessioninfos[client.id];
   var padId = currentSession.padId;
   var roomClients = _getRoomClients(padId);
-  
+
   async.forEach(roomClients, function(client, callback) {
     var sinfo = sessioninfos[client.id];
     if(sinfo && sinfo.author == currentSession.author) {
@@ -1115,7 +1115,7 @@ function handleClientReady(client, message)
 
       //Check if this author is already on the pad, if yes, kick the other sessions!
       var roomClients = _getRoomClients(pad.id);
-      
+
       async.forEach(roomClients, function(client, callback) {
         var sinfo = sessioninfos[client.id];
         if(sinfo && sinfo.author == author) {
@@ -1676,13 +1676,13 @@ function composePadChangesets(padId, startNum, endNum, callback)
 
 function _getRoomClients(padID) {
   var roomClients = []; var room = socketio.sockets.adapter.rooms[padID];
-  
+
   if (room) {
     for (var id in room.sockets) {
       roomClients.push(socketio.sockets.sockets[id]);
     }
   }
-  
+
   return roomClients;
 }
 
