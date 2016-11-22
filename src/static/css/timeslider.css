@@ -14,14 +14,12 @@
   top: 0;
 }
 #timeslider-left {
-  background-color:#fff;
   height: 63px;
   left: 0;
   position: absolute;
   width: 134px;
 }
 #timeslider-right {
-  background-color:#fff;
   height: 63px;
   position: absolute;
   right: 0;
@@ -37,8 +35,6 @@
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  background-color:#fff;
-  /* bgcolor is reuqired so you can't see pad content behind it */
 }
 #timeslider #timeslider-slider {
   height: 61px;
@@ -90,7 +86,7 @@
   cursor:hand;
 }
 #playpause_button_icon:before {
-  line-height:44px;  
+  line-height:44px;
   padding-left:2px;
   font-family: fontawesome-etherpad;
   content: "\e82c";
@@ -105,7 +101,7 @@
   border: solid 1px #666;
 }
 .pause:before {
-  line-height:44px;  
+  line-height:44px;
   padding-left:2px;
   font-family: fontawesome-etherpad;
   content: "\e82e" !important;
@@ -179,6 +175,7 @@ stepper:active{
   text-align: center;
   top: 9px;
   width: 122px;
+  z-index: 1;
 }
 .topbarcenter,
 #docbar {
@@ -228,6 +225,8 @@ stepper:active{
   overflow: hidden;
   padding-top: 3px;
   width: 100%;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
 }
 .timeslider-bar #editbar {
   border-bottom: none;
