@@ -113,7 +113,7 @@ var paduserlist = (function()
       }
       else
       {
-        nameHtml = '<input data-l10n-id="pad.userlist.unnamed" type="text" class="editempty newinput" value="'+_('pad.userlist.unnamed')+'" ' + (isNameEditable(data) ? '' : 'disabled="disabled" ') + '/>';
+        nameHtml = '<input data-l10n-id="pad.userlist.unnamed" type="text" class="editempty newinput" value="'+html10n.get('pad.userlist.unnamed')+'" ' + (isNameEditable(data) ? '' : 'disabled="disabled" ') + '/>';
       }
 
       return ['<td style="height:', height, 'px" class="usertdswatch"><div class="swatch" style="background:' + padutils.escapeHtml(data.color) + '">&nbsp;</div></td>', '<td style="height:', height, 'px" class="usertdname">', nameHtml, '</td>', '<td style="height:', height, 'px" class="activity">', padutils.escapeHtml(data.activity), '</td>'].join('');
@@ -371,7 +371,7 @@ var paduserlist = (function()
       if (!newName)
       {
         jnode.addClass("editempty");
-        jnode.val(_('pad.userlist.unnamed'));
+        jnode.val(html10n.get('pad.userlist.unnamed'));
       }
       else
       {
@@ -563,10 +563,12 @@ var paduserlist = (function()
     },
     userJoinOrUpdate: function(info)
     {
-      if ((!info.userId) || (info.userId == myUserInfo.userId))
-      {
-        // not sure how this would happen
+      if (!info.userId) {
         return;
+      }
+
+      if (info.userId == myUserInfo.userId) {
+        return self.setMyUserInfo(info);
       }
 
       hooks.callAll('userJoinOrUpdate', {
@@ -705,13 +707,13 @@ var paduserlist = (function()
       if (box.length == 0)
       {
         // make guest prompt box
-        box = $('<div id="'+padutils.escapeHtml('guestprompt-' + encodedUserId) + '" class="guestprompt"><div class="choices"><a href="' + padutils.escapeHtml('javascript:void(require('+JSON.stringify(module.id)+').paduserlist.answerGuestPrompt(' + JSON.stringify(encodedUserId) + ',false))')+'">'+_('pad.userlist.deny')+'</a> <a href="' + padutils.escapeHtml('javascript:void(require('+JSON.stringify(module.id)+').paduserlist.answerGuestPrompt(' + JSON.stringify(encodedUserId) + ',true))') + '">'+_('pad.userlist.approve')+'</a></div><div class="guestname"><strong>'+_('pad.userlist.guest')+':</strong> ' + padutils.escapeHtml(displayName) + '</div></div>');
+        box = $('<div id="'+padutils.escapeHtml('guestprompt-' + encodedUserId) + '" class="guestprompt"><div class="choices"><a href="' + padutils.escapeHtml('javascript:void(require('+JSON.stringify(module.id)+').paduserlist.answerGuestPrompt(' + JSON.stringify(encodedUserId) + ',false))')+'">'+html10n.get('pad.userlist.deny')+'</a> <a href="' + padutils.escapeHtml('javascript:void(require('+JSON.stringify(module.id)+').paduserlist.answerGuestPrompt(' + JSON.stringify(encodedUserId) + ',true))') + '">'+html10n.get('pad.userlist.approve')+'</a></div><div class="guestname"><strong>'+html10n.get('pad.userlist.guest')+':</strong> ' + padutils.escapeHtml(displayName) + '</div></div>');
         $("#guestprompts").append(box);
       }
       else
       {
         // update display name
-        box.find(".guestname").html('<strong>'+_('pad.userlist.guest')+':</strong> ' + padutils.escapeHtml(displayName));
+        box.find(".guestname").html('<strong>'+html10n.get('pad.userlist.guest')+':</strong> ' + padutils.escapeHtml(displayName));
       }
       var hideLater = padutils.getCancellableAction(actionName, function()
       {
@@ -752,7 +754,7 @@ var paduserlist = (function()
     renderMyUserInfo: function()
     {
       // Disable username fields if user authorized, name is taken from user profile in this case
-      var isDisabled = myUserInfo.name && myUserInfo.isAuthorized;
+      var isDisabled = !!myUserInfo.name && myUserInfo.isAuthorized;
 
       $("#myusernameedit").attr('disabled', isDisabled)[isDisabled ? 'removeClass' : 'addClass']('myusernameedithoverable');
 
@@ -762,7 +764,7 @@ var paduserlist = (function()
       }
       else
       {
-        $("#myusernameedit").addClass("editempty").val(_("pad.userlist.entername"));
+        $("#myusernameedit").addClass("editempty").val(html10n.get("pad.userlist.entername"));
       }
       if (colorPickerOpen)
       {

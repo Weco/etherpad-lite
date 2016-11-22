@@ -1,0 +1,90 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "ep_author_neat",
+        "scope": null,
+        "escapedName": "ep_author_neat",
+        "name": "ep_author_neat",
+        "rawSpec": "",
+        "spec": "latest",
+        "type": "tag"
+      },
+      "/Users/gaer/Documents/we/etherpad"
+    ]
+  ],
+  "_from": "ep_author_neat@latest",
+  "_id": "ep_author_neat@0.0.31",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/ep_author_neat",
+  "_npmUser": {
+    "name": "clkao",
+    "email": "clkao@clkao.org"
+  },
+  "_npmVersion": "1.2.18",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "ep_author_neat",
+    "scope": null,
+    "escapedName": "ep_author_neat",
+    "name": "ep_author_neat",
+    "rawSpec": "",
+    "spec": "latest",
+    "type": "tag"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "https://registry.npmjs.org/ep_author_neat/-/ep_author_neat-0.0.31.tgz",
+  "_shasum": "4ad98bdc6b5bfbebc174fdda23fd7cfecc6f15f9",
+  "_shrinkwrap": null,
+  "_spec": "ep_author_neat",
+  "_where": "/Users/gaer/Documents/we/etherpad",
+  "author": {
+    "name": "Chia-liang Kao",
+    "email": "clkao@clkao.org"
+  },
+  "bugs": {
+    "url": "https://github.com/clkao/ep_author_neat/issues"
+  },
+  "contributors": [
+    {
+      "name": "John McLear",
+      "email": "john@mclear.co.uk",
+      "url": "http://mclear.co.uk"
+    }
+  ],
+  "dependencies": {},
+  "description": "Neat author display for etherpad-lite",
+  "devDependencies": {
+    "LiveScript": "1.1.1"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "4ad98bdc6b5bfbebc174fdda23fd7cfecc6f15f9",
+    "tarball": "https://registry.npmjs.org/ep_author_neat/-/ep_author_neat-0.0.31.tgz"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "homepage": "https://github.com/clkao/ep_author_neat#readme",
+  "maintainers": [
+    {
+      "name": "clkao",
+      "email": "clkao@clkao.org"
+    }
+  ],
+  "name": "ep_author_neat",
+  "optionalDependencies": {},
+  "readme": "ep_author_neat\n==============\n\nUse colored underline for authorship instead of background color.\n\n*This requires develop branch of etherpad-lite*.\n\nLeft: original etherpad-lite; Right: ep_author_neat enabled\n\n![ep_author_neat](https://raw.github.com/clkao/ep_author_neat/master/thumbnail.png \"ep_author_neat\")\n\nLicense: MIT\n",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/clkao/ep_author_neat.git"
+  },
+  "scripts": {
+    "prepublish": "./node_modules/.bin/lsc -cj package.ls &&\n./node_modules/.bin/lsc -bc -o static/js src/js"
+  },
+  "version": "0.0.31"
+}
