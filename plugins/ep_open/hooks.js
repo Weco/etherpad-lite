@@ -10,10 +10,43 @@ const api = require('./api');
 const socketio = require('./api/common/socketio');
 const cookieParser = require('ep_etherpad-lite/node_modules/cookie-parser');
 const settings = require('ep_etherpad-lite/node/utils/Settings');
+const Honeypot = require('honeypot');
+const honeypot = new Honeypot('ycvyvsukawvu');
+const logger = require('ep_etherpad-lite/node_modules/log4js').getLogger('API');
+
+const checkedIPs = [];
+const blacklistedIPs = [];
 
 exports.expressCreateServer = function(hookName, args) {
 	const { app } = args;
 
+	// Check IP address in blacklist of spammers
+	app.use(function(request, response, next) {
+		const ip = (
+			request.ip ||
+			request.connection.remoteAddress ||
+			request.socket.remoteAddress ||
+			request.connection.socket.remoteAddress
+		);
+
+		if (blacklistedIPs.indexOf(ip) !== -1) {
+			return response.status(403).send('Access denied! Your IP address is on the blacklist of suspicious and malicious IPs.');
+		}
+
+		if (checkedIPs.indexOf(ip) === -1) {
+			checkedIPs.push(ip);
+			honeypot.query(ip, function(error, response) {
+				if (response) {
+					blacklistedIPs.push(ip);
+					logger.warn('Blacklist check | blocked IP: ' + ip, honeypot.getFormattedResponse());
+				} else {
+					logger.info('Blacklist check | allowed IP: ' + ip);
+				}
+			});
+		}
+
+		next();
+	});
 	app.use(helmet());
 	app.use(bodyParser.json({ limit: '50mb' }));
 	app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
