@@ -114,6 +114,8 @@ exports.postAceInit = function(hook,context) {
       var imageLine = $image.parents('div');
       var lineNumber = imageLine.prevAll().length;
       var newSize = imageWidth;
+      var outerScrollEls = $('iframe[name=ace_outer]').contents().find('body, html');
+      var scrollTop = outerScrollEls.eq(0).scrollTop() || outerScrollEls.eq(1).scrollTop();
 
       $inner
         .css('user-select', 'none')
@@ -144,6 +146,8 @@ exports.postAceInit = function(hook,context) {
           context.ace.callWithAce(function(ace) {
             ace.ace_setImageSize(newSize, lineNumber);
           }, 'img', true);
+
+          outerScrollEls.scrollTop(scrollTop);
       });
     });
 
