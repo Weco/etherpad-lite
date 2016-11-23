@@ -23,10 +23,10 @@ exports.expressCreateServer = function(hookName, args) {
 	// Check IP address in blacklist of spammers
 	app.use(function(request, response, next) {
 		const ip = (
+			request.headers['x-forwarded-for'] ||
 			request.ip ||
 			request.connection.remoteAddress ||
-			request.socket.remoteAddress ||
-			request.connection.socket.remoteAddress
+			request.socket.remoteAddress
 		);
 
 		if (blacklistedIPs.indexOf(ip) !== -1) {
@@ -36,7 +36,10 @@ exports.expressCreateServer = function(hookName, args) {
 		if (checkedIPs.indexOf(ip) === -1) {
 			checkedIPs.push(ip);
 			honeypot.query(ip, function(error, response) {
-				if (response) {
+				const type = response ? response[0].split('.')[3] : 0;
+
+				// If type of user is harvester or comment spammer, then block it
+				if (type > 1) {
 					blacklistedIPs.push(ip);
 					logger.warn('Blacklist check | blocked IP: ' + ip, honeypot.getFormattedResponse());
 				} else {
