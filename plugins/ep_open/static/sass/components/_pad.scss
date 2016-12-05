@@ -318,7 +318,7 @@
 	font: 14px/20px Arial;
 	border: 1px solid #ccc;
 	border-radius: 3px;
-	z-index: 101;
+	z-index: 102;
 	cursor: pointer;
 }
 
@@ -468,6 +468,31 @@
 		right: -10px;
 		background: darken($greyColor, 1%);
 		z-index: -1;
+	}
+
+	.pad__hierarchy__node--inactive > & {
+		color: #ccc;
+	}
+
+	.fa-eye,
+	.fa-eye-slash {
+		position: relative;
+		z-index: 1;
+	}
+
+	.editable {
+		padding-right: 24px;
+
+		.pad__hierarchy__node--has_inactive > & {
+			padding-right: 48px;
+			margin-right: -42px;
+		}
+
+		.fa-pencil {
+			position: absolute;
+			right: 4px;
+			top: 2px;
+		}
 	}
 
 	&:not(:hover) .editable:not(.editable--active) .fa-pencil {
