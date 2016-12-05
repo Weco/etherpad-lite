@@ -97,8 +97,8 @@ export default class Pad extends Base {
 	}
 
 	updateCurrentPadOffset(offset) {
-		if (this.props.currentPad && this.props.currentPad.etherpadId) {
-			const iframe = document.getElementById(this.props.currentPad.etherpadId);
+		if (this.props.currentPad && this.props.currentPad.id) {
+			const iframe = document.getElementById(this.props.currentPad.id);
 
 			if (iframe) {
 				this.refs.resizer.style.left = iframe.style.left = offset + 'px';
@@ -244,9 +244,9 @@ export default class Pad extends Base {
 	}
 
 	componentDidUpdate() {
-		const etherpadId = this.props.currentPad && this.props.currentPad.etherpadId;
+		const currentId = this.props.currentPad && this.props.currentPad.id;
 
-		if (etherpadId) {
+		if (currentId) {
 			const unloadedIframes = [];
 			let padsOffsets = {};
 			this.currentIframes = [];
@@ -260,12 +260,12 @@ export default class Pad extends Base {
 			this.getPads().some((pad, index) => {
 				if (!pad) return true;
 
-				const isCurrent = pad.etherpadId === etherpadId;
-				let iframe = document.getElementById(pad.etherpadId);
+				const isCurrent = pad.id === currentId;
+				let iframe = document.getElementById(pad.id);
 
 				if (!iframe) {
 					iframe = document.createElement('div');
-					iframe.id = pad.etherpadId;
+					iframe.id = pad.id;
 					iframe.className = 'pad__iframe';
 					iframe.innerHTML = `
 						<div class="pad__iframe__screen"></div>
@@ -277,7 +277,7 @@ export default class Pad extends Base {
 				const iframeEl = iframe.querySelector('.pad__iframe__el');
 
 				if (!iframeEl.src) {
-					const source = `/p/${pad.etherpadId}?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false`;
+					const source = `/p/${pad.id}?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false`;
 
 					if (isCurrent) {
 						iframeEl.src = source;

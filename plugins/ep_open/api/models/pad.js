@@ -10,7 +10,6 @@ const Pad = ModelBase('pad', {
 		primaryKey: true,
 		type: Sequelize.STRING
 	},
-	etherpadId: Sequelize.STRING,
 	type: {
 		type: Sequelize.STRING,
 		defaultValue: 'child'

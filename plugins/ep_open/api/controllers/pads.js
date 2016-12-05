@@ -52,7 +52,6 @@ module.exports = api => {
 				pad = yield Pad.scope('full').create({
 					id: 'root',
 					type: 'root',
-					etherpadId: 'root',
 					title: 'Open companies'
 				});
 			} else {
@@ -83,9 +82,8 @@ module.exports = api => {
 		}
 
 		data.id = id;
-		data.etherpadId = md5(id);
 
-		yield promiseWrapper(padManager, 'getPad', [data.etherpadId]);
+		yield promiseWrapper(padManager, 'getPad', [data.id]);
 		const pad = yield Pad.scope('full').create(data);
 
 		return yield pad.reload({
@@ -110,7 +108,7 @@ module.exports = api => {
 
 		yield pad.update(collectData(request, { body: ['title', 'description'] }));
 
-		if (pad.title !== padTitle && rootHierarchy.store[pad.etherpadId]) {
+		if (pad.title !== padTitle && rootHierarchy.store[pad.id]) {
 			updateRootHierarchy({
 				id: pad.id,
 				title: pad.title
@@ -261,7 +259,7 @@ function* buildHierarchy(id, store, depth) {
 		return {};
 	}
 
-	const padData = yield promiseWrapper(padManager, 'getPad', [pad.etherpadId]);
+	const padData = yield promiseWrapper(padManager, 'getPad', [pad.id]);
 	const result = {
 		id: pad.id,
 		title: pad.title,
@@ -302,7 +300,7 @@ function* buildHierarchy(id, store, depth) {
 		}
 	}
 
-	rootHierarchy.store[pad.etherpadId] = { id, children };
+	rootHierarchy.store[pad.id] = { id, children };
 
 	return result;
 }
