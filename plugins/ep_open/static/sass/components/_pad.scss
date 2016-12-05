@@ -464,6 +464,31 @@
 		z-index: -1;
 	}
 
+	.pad__hierarchy__node--inactive > & {
+		color: #ccc;
+	}
+
+	.fa-eye,
+	.fa-eye-slash {
+		position: relative;
+		z-index: 1;
+	}
+
+	.editable {
+		padding-right: 24px;
+
+		.pad__hierarchy__node--has_inactive > & {
+			padding-right: 48px;
+			margin-right: -42px;
+		}
+
+		.fa-pencil {
+			position: absolute;
+			right: 4px;
+			top: 2px;
+		}
+	}
+
 	&:not(:hover) .editable:not(.editable--active) .fa-pencil {
 		display: none;
 	}

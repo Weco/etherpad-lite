@@ -30,17 +30,23 @@ export default class PadsHierarchy extends Base {
 		super(props);
 
 		let expandedNodes = {};
+		let inactiveExpandedNodes = {};
 
 		try {
 			if (window.sessionStorage.expandedNodes) {
 				expandedNodes = JSON.parse(window.sessionStorage.expandedNodes);
+			}
+
+			if (window.sessionStorage.inactiveExpandedNodes) {
+				inactiveExpandedNodes = JSON.parse(window.sessionStorage.inactiveExpandedNodes);
 			}
 		} catch(e) {}
 
 		this.state = {
 			isLoading: false,
 			isResizing: false,
-			expandedNodes: expandedNodes
+			expandedNodes,
+			inactiveExpandedNodes
 		};
 		this.width = window.sessionStorage.hierarchyPanelWidth || 240;
 		this.expandPathToCurrentPad(this.props.currentPad);
@@ -109,13 +115,13 @@ export default class PadsHierarchy extends Base {
 				nodes.forEach(node => {
 					if (node.id === currentId) {
 						path.forEach(node => expandedNodes[node] = true);
-					} else if (node.children) {
-						step(node.children, path.concat(node.id));
+					} else if (node.children && node.children.active) {
+						step(node.children.active, path.concat(node.id));
 					}
 				});
 			};
 
-			hierarchy.children && step(hierarchy.children, []);
+			hierarchy.children && hierarchy.children.active && step(hierarchy.children.active, []);
 			this.setExpandedNodes(expandedNodes);
 		}
 	}
@@ -129,6 +135,22 @@ export default class PadsHierarchy extends Base {
 	setExpandedNodes(expandedNodes) {
 		this.setState({ expandedNodes });
 		window.sessionStorage.setItem('expandedNodes', JSON.stringify(expandedNodes));
+	}
+
+	toggleInactiveNodes(nodeId, event) {
+		const currentState = this.state.inactiveExpandedNodes[nodeId];
+		const inactiveExpandedNodes = Object.assign({}, this.state.inactiveExpandedNodes, {
+			[nodeId]: !currentState
+		});
+
+		if (!currentState && !this.state.expandedNodes[nodeId]) {
+			this.toggleNode(nodeId);
+		}
+
+		this.setState({ inactiveExpandedNodes });
+		window.sessionStorage.setItem('inactiveExpandedNodes', JSON.stringify(inactiveExpandedNodes));
+
+		event.stopPropagation();
 	}
 
 	updateWidth(value) {
@@ -147,15 +169,27 @@ export default class PadsHierarchy extends Base {
 		this.element.style.width = value;
 	}
 
-	buildList(list, path) {
+	buildChildren(children, path) {
+		const parentId = path[path.length - 1];
+		const isInactiveVisible = this.state.inactiveExpandedNodes[parentId];
+		const list = [].concat(
+			children.active,
+			isInactiveVisible ? children.inactive.map(child => (Object.assign({ isInactive: true }, child))) : []
+		);
+
 		return (
 			<div className='pad__hierarchy__list'>
-				{list.map(node => (
-					<div
+				{list.map(node => {
+					const hasInactive = node.children && node.children.inactive && node.children.inactive.length;
+					const isNodeInactiveVisible = this.state.inactiveExpandedNodes[node.id];
+
+					return (<div
 						key={path.concat(node.id).join('_')}
 						className={classNames('pad__hierarchy__node', {
 							'pad__hierarchy__node--root': path.length === 1,
 							'pad__hierarchy__node--active': this.props.currentPad.id === node.id,
+							'pad__hierarchy__node--inactive': node.isInactive,
+							'pad__hierarchy__node--has_inactive': hasInactive,
 							'pad__hierarchy__node--expanded': this.state.expandedNodes[node.id],
 							'pad__hierarchy__node--parent': node.children
 						})}>
@@ -175,12 +209,21 @@ export default class PadsHierarchy extends Base {
 							<div
 								className='pad__hierarchy__node__title'
 								onClick={this.goToPad.bind(this, path.concat(node.id))}>
-								<EditableText text={node.title} save={title => this.props.actions.updatePad(node.id, { title })} />
+								{node.isInactive ? node.title : <EditableText text={node.title} save={title => this.props.actions.updatePad(node.id, { title })} /> }
+								{hasInactive ? (
+									<i
+										className={classNames('fa', {
+											'fa-eye': isNodeInactiveVisible,
+											'fa-eye-slash': !isNodeInactiveVisible
+										})}
+										title='Toggle visibilty of deleted links'
+										onClick={this.toggleInactiveNodes.bind(this, node.id)} />
+								) : null}
 							</div>
 						)}
-						{node.children ? this.buildList(node.children, path.concat(node.id)) : null}
-					</div>
-				))}
+						{node.children ? this.buildChildren(node.children, path.concat(node.id)) : null}
+					</div>)
+				})}
 			</div>
 		)
 	}
@@ -233,7 +276,7 @@ export default class PadsHierarchy extends Base {
 							})}>
 							<div className='pad__hierarchy__node__title' onClick={this.goToPad.bind(this, ['root'])}>Open companies</div>
 						</div>
-						{this.props.padsHierarchy ? this.buildList(this.props.padsHierarchy.children || [], ['root']) : null}
+						{this.props.padsHierarchy ? this.buildChildren(this.props.padsHierarchy.children || {}, ['root']) : null}
 					</div>
 				</div>
 			</div>

@@ -222,10 +222,25 @@ function getPadLinks(pad) {
 
 	const internalLinks = [];
 	const externalLinks = [];
+	const inactiveLinks = [];
 
 	_.uniqBy(links, 'value').forEach(link => (isExternalLink(link.value) ? externalLinks : internalLinks).push(link));
 
-	return internalLinks.concat(externalLinks);
+	Object.keys(pad.pool.attribToNum).forEach(attribute => {
+		if (/^link,.+/.test(attribute)) {
+			const linkId = attribute.replace(/^link,([^,]*)?(.*)/g, '$1');
+
+			if (!isExternalLink(linkId) && _.findIndex(internalLinks, { value: linkId }) === -1 && _.findIndex(inactiveLinks, { value: linkId }) === -1) {
+				inactiveLinks.push({
+					value: linkId,
+					title: linkId,
+					isInactive: true
+				});
+			}
+		}
+	});
+
+	return internalLinks.concat(externalLinks, inactiveLinks);
 }
 
 /**
@@ -250,7 +265,7 @@ function* buildHierarchy(id, store, depth) {
 	const result = {
 		id: pad.id,
 		title: pad.title,
-		type: pad.type,
+		type: pad.type
 	};
 	let children = [];
 
@@ -260,10 +275,14 @@ function* buildHierarchy(id, store, depth) {
 		children = getPadLinks(padData);
 
 		if (children.length) {
-			result.children = [];
+			result.children = {
+				active: [],
+				inactive: []
+			};
 
 			for (var i = 0; i < children.length; i++) {
 				const linkValue = children[i].value;
+				const isInactive = !!children[i].isInactive;
 				let child;
 
 				if (isExternalLink(linkValue)) {
@@ -273,11 +292,11 @@ function* buildHierarchy(id, store, depth) {
 						type: 'external'
 					};
 				} else {
-					child = yield co.wrap(buildHierarchy)(linkValue, store, depth);
+					child = yield co.wrap(buildHierarchy)(linkValue, store, isInactive ? 0 : depth);
 				}
 
 				if (!_.isEmpty(child)) {
-					result.children.push(child);
+					result.children[isInactive ? 'inactive' : 'active'].push(child);
 				}
 			}
 		}
@@ -299,16 +318,23 @@ function* buildRootHierarchy() {
 	if (!_.isEmpty(rootPad)) {
 		const children = rootPad.children;
 
-		rootPad.children = [];
+		rootPad.children = {
+			active: [],
+			inactive: []
+		};
 
-		if (children) {
-			for (var i = 0; i < children.length; i++) {
-				const child = children[i];
+		if (children.active) {
+			for (let i = 0; i < children.active.length; i++) {
+				const child = children.active[i];
 
 				if (child.type === 'company') {
-					rootPad.children.push(yield co.wrap(buildHierarchy)(child.id, {}));
+					rootPad.children.active.push(yield co.wrap(buildHierarchy)(child.id, {}));
 				}
 			}
+		}
+
+		if (children.inactive) {
+			children.inactive = children.inactive.filter(child => child.type === 'company');
 		}
 	}
 
@@ -328,7 +354,10 @@ function updateRootHierarchy(updatedNode) {
 				Object.assign(node, updatedNode);
 			}
 
-			node.children && node.children.forEach(step);
+			if (node.children) {
+				node.children.active && node.children.active.forEach(step);
+				node.children.inactive && node.children.inactive.forEach(step);
+			}
 		}
 
 		step(rootHierarchy.object);
