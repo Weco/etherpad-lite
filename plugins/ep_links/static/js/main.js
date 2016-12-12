@@ -7,7 +7,7 @@ $(document).ready(function () {
 	});
 
 	window.top.pm && window.top.pm.subscribe('newLink', function(data) {
-		if (data.etherpadId === pad.getPadId()) {
+		if (data.padId === pad.getPadId()) {
 			var padeditor = require('ep_etherpad-lite/static/js/pad_editor').padeditor;
 
 			padeditor.ace.callWithAce(function(ace) {

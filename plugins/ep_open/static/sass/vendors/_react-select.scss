@@ -11,7 +11,7 @@
 
 .Select-placeholder {
 	padding-left: 12px;
-	color: $textColor;
+	color: lighten($textColor, 30%);
 }
 
 .Select--multi {
