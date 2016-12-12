@@ -175,11 +175,11 @@
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 8px;
+	width: 2px;
 	height: 100%;
 	background: #ccc;
 	border-left: 1px solid #bbb;
-	margin-left: -8px;
+	margin-left: -2px;
 	z-index: 102;
 	cursor: ew-resize;
 
@@ -289,7 +289,7 @@
 .pad__hierarchy__scrollbox {
 	position: absolute;
 	top: 0;
-	right: 8px;
+	right: 3px;
 	bottom: 0;
 	left: 0;
 	overflow: auto;
@@ -349,7 +349,7 @@
 	position: absolute;
 	top: 0;
 	right: 0;
-	width: 8px;
+	width: 3px;
 	height: 100%;
 	background: #ccc;
 	cursor: ew-resize;
@@ -472,25 +472,30 @@
 	.fa-eye-slash {
 		position: relative;
 		z-index: 1;
+		margin-left: 3px;
 	}
 
 	.editable {
 		padding-right: 24px;
-
-		.pad__hierarchy__node--has_inactive > & {
-			padding-right: 48px;
-			margin-right: -42px;
-		}
 
 		.fa-pencil {
 			position: absolute;
 			right: 4px;
 			top: 2px;
 		}
+
+		.pad__hierarchy__node--has_inactive > & .input {
+			right: 0;
+			width: calc(100% + 3px);
+		}
 	}
 
-	&:not(:hover) .editable:not(.editable--active) .fa-pencil {
-		display: none;
+	&:not(:hover) {
+		.fa-eye,
+		.fa-eye-slash,
+		.editable:not(.editable--active) .fa-pencil {
+			display: none;
+		}
 	}
 
 	.fa-external-link {
@@ -507,8 +512,7 @@
 
 .pad__just-link-input {
 	width: calc(100% - 110px);
-	height: 36px;
 	line-height: 34px;
 	padding: 0 12px;
-	border: 1px solid #ccc;
+	font-size: 14px;
 }

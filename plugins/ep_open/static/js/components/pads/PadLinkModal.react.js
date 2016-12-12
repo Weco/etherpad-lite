@@ -110,14 +110,6 @@ export default class PadLinkModal extends Base {
 			<div className={classNames('pad__modal pad__modal--link', { 'pad__modal--active': this.state.isActive })}>
 				<div className='pad__modal__inner'>
 					<div className='pad__modal__content'>
-						<h1 className='pad__modal__title'>Add external link</h1>
-						<input
-							className='pad__just-link-input'
-							type="text"
-							placeholder="http://example.com"
-							valueLink={this.linkState('externalLink')} />
-						<button className='btn' onClick={this.insertExternalLink.bind(this)}>Add</button>
-						<div className='pad__modal__separator'></div>
 						<h1 className='pad__modal__title'>Add link to another pad</h1>
 						<button className='btn' onClick={this.insertLink.bind(this)}>
 							{this.state.isSelected ? 'Link to This' : 'Add'}
@@ -132,6 +124,14 @@ export default class PadLinkModal extends Base {
 							label='Add as New Company'
 							checkedLink={this.linkState('isCompanyLink')}
 							disabled={this.state.isSelected} />
+						<div className='pad__modal__separator'></div>
+						<h1 className='pad__modal__title'>Add external link</h1>
+						<input
+							className='pad__just-link-input input'
+							type="text"
+							placeholder="http://example.com"
+							valueLink={this.linkState('externalLink')} />
+						<button className='btn' onClick={this.insertExternalLink.bind(this)}>Add</button>
 					</div>
 				</div>
 			</div>
