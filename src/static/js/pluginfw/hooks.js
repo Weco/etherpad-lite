@@ -73,7 +73,8 @@ exports.callAll = function (hook_name, args) {
   if (exports.plugins){
     if (exports.plugins.hooks[hook_name] === undefined) return [];
     // Sorting of hooks in accordance with priority in ep.json files, where 10 is the highest and 0 is the lowest values
-    return _.flatten(_.map(_.sortBy(exports.plugins.hooks[hook_name], h => -(h.part.priority || 0)), function (hook) {
+    var hooks = _.sortBy(exports.plugins.hooks[hook_name], function(h) { return -(h.part.priority || 0); });
+    return _.flatten(_.map(hooks, function (hook) {
       return hookCallWrapper(hook, hook_name, args);
     }), true);
   }
