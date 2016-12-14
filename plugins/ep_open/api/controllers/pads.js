@@ -54,6 +54,7 @@ module.exports = api => {
 					type: 'root',
 					title: 'Open companies'
 				});
+				co.wrap(buildRootHierarchy)();
 			} else {
 				return responseError(response, 'Pad is not found');
 			}
@@ -314,7 +315,7 @@ function* buildRootHierarchy() {
 	logger.debug('ROOT HIERARCHY BUILD');
 
 	if (!_.isEmpty(rootPad)) {
-		const children = rootPad.children;
+		const children = rootPad.children || {};
 
 		rootPad.children = {
 			active: [],
@@ -332,7 +333,7 @@ function* buildRootHierarchy() {
 		}
 
 		if (children.inactive) {
-			children.inactive = children.inactive.filter(child => child.type === 'company');
+			rootPad.children.inactive = children.inactive.filter(child => child.type === 'company');
 		}
 	}
 

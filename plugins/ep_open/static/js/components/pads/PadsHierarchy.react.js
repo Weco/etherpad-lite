@@ -173,8 +173,8 @@ export default class PadsHierarchy extends Base {
 		const parentId = path[path.length - 1];
 		const isInactiveVisible = this.state.inactiveExpandedNodes[parentId];
 		const list = [].concat(
-			children.active,
-			isInactiveVisible ? children.inactive.map(child => (Object.assign({ isInactive: true }, child))) : []
+			children.active || [],
+			isInactiveVisible ? (children.inactive || []).map(child => (Object.assign({ isInactive: true }, child))) : []
 		);
 
 		return (
