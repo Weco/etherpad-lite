@@ -71,8 +71,10 @@ exports.responseHandler = (response, errorType) => {
 	};
 };
 
-exports.responseError = (response, error, code) => {
-	return response.status(code || 400).send({ error });
+exports.responseError = (response, errors, code) => {
+	return response.status(code || 400).send({
+		[_.isArray(errors) ? 'errors' : 'error']: errors
+	});
 };
 
 exports.checkAuth = (request, response, next) => {
@@ -128,7 +130,6 @@ exports.promiseWrapper = (object, method, args = []) => {
 	});
 }
 
-
 /**
  * Filter reputation object and leave only reputation value for passed companyId
  * @param companyId - Id of company
@@ -158,7 +159,7 @@ function filterReputation(companyId, data) {
  * @param {String} image - Image in base64 format
  * @return {Promise}
  */
-module.exports.uploadImage = function(image) {
+exports.uploadImage = function(image) {
 	return new Promise((resolve, reject) => {
 		const imageMatch = image.match(/data\:([^;]*);base64,(.*)/);
 		const imageType = imageMatch[1];

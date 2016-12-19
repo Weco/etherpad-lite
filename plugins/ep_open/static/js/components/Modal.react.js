@@ -25,8 +25,8 @@ export default class Modal extends Component {
 	}
 
 	componentDidMount() {
-		window.addEventListener('resize', this.handleResize);
-		document.body.addEventListener('keydown', this.closeModal);
+		window.addEventListener('resize', this.handleResize.bind(this));
+		document.body.addEventListener('keydown', this.closeModal.bind(this));
 		this.handleResize();
 	}
 

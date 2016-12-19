@@ -24,7 +24,7 @@
 	font-family: font-awesome;
 }
 
-.buttonicon-link:before{
+.buttonicon-link:before {
 	content: "\e839";
 	top: 2px!important;
 }

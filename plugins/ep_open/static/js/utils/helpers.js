@@ -1,6 +1,6 @@
+import { uniqBy, intersection } from 'lodash';
 import moment from 'moment';
 import tree from '../store';
-import { ACTIONS, OWNER_ACTIONS, ACTIONS_MIN_REPUTATION } from '../../../config/constants';
 
 export function niceDate(date) {
 	return moment(date).calendar(null, {
@@ -13,31 +13,66 @@ export function niceDate(date) {
 	}).toLowerCase();
 }
 
-export function isActionAllowed(action, ownerId) {
+export function getAllowedOperations(pad) {
 	const user = tree.get('currentUser');
-	const companyId = tree.get('currentCompanyId');
-	let isAllowed;
+	const currentUserRoles = ['user'];
+	const permissions = formatPermissions(pad.permissions);
+	const operations = ['manage', 'write', 'read'];
+	const ownerId = pad.owner ? pad.owner.id : pad.ownerId;
+	let allowedOperations = [];
 
-	if (ACTIONS.indexOf(action) === -1) {
-		return new Error('Unknown action');
-	}
+	if (user) {
+		currentUserRoles.push('authorizedUser');
+		currentUserRoles.push(`user/${user.id}`);
 
-	if (companyId && user) {
-		const permissions = (user.permissions || {} )[companyId] || {};
-		const reputation = (user.reputation || {} )[companyId] || 1;
-
-		if (ownerId && OWNER_ACTIONS.indexOf(action) !== -1) {
-			isAllowed = user.id === ownerId;
-		}
-
-		if (isAllowed === undefined) {
-			isAllowed = permissions[action];
-		}
-
-		if (isAllowed === undefined) {
-			isAllowed = reputation >= ACTIONS_MIN_REPUTATION[action];
+		if (user.id === ownerId) {
+			return operations.reverse();
 		}
 	}
 
-	return isAllowed;
+	for (var i = 0; i < operations.length; i++) {
+		const roles = permissions[operations[i]];
+
+		if (roles && intersection(roles, currentUserRoles).length !== 0) {
+			allowedOperations = operations.slice(i).reverse();
+			break;
+		}
+	}
+
+	return allowedOperations;
+}
+
+export function formatPermissions(permissions) {
+	const operations = ['manage', 'write', 'read'];
+	const formattedPermissions = {
+		read: [],
+		write: [],
+		manage: []
+	};
+
+	permissions && permissions.forEach(permission => {
+		const roles = formattedPermissions[permission.operation];
+
+		if (roles && roles.push) {
+			roles.push(permission.role);
+		}
+	});
+
+	let topOperationRoles = [];
+
+	operations.forEach(operation => {
+		const roles = uniqBy(formattedPermissions[operation].concat(topOperationRoles)).sort((a, b) => {
+			const rolesPriorities = ['authorizedUser', 'user'];
+
+			return rolesPriorities.indexOf(a) <= rolesPriorities.indexOf(b);
+		});
+
+		formattedPermissions[operation] = topOperationRoles = roles;
+	});
+
+	return formattedPermissions;
+}
+
+export function isOperationAllowed(operation, pad) {
+	return getAllowedOperations(pad || tree.get('currentPad')).indexOf(operation) !== -1;
 }

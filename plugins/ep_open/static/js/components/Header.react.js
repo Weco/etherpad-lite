@@ -14,6 +14,8 @@ import { logout } from '../actions/user';
 })
 class Header extends Component {
 	render() {
+		const url = this.props.location.pathname + this.props.location.search;
+
 		return (
 			<header className='header'>
 				<Link to='/' className='header__logo' />
@@ -40,7 +42,8 @@ class Header extends Component {
 									pathname: '/signin',
 									state: {
 										modal: true,
-										returnTo: this.props.location.pathname
+										returnTo: url,
+										goTo: url
 									}
 								}}>
 								Sign In
@@ -51,7 +54,8 @@ class Header extends Component {
 									pathname: '/signup',
 									state: {
 										modal: true,
-										returnTo: this.props.location.pathname
+										returnTo: url,
+										goTo: url
 									}
 								}}>
 								Sign Up

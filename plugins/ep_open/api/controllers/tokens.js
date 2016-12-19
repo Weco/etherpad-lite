@@ -62,9 +62,10 @@ function createToken(user, etherpadToken) {
 		.then(() =>
 			Token.create({
 				expires: moment().add(1, 'months'),
-				userId: user.id
+				userId: user.id,
+				etherpadToken
 			})
-	);
+		);
 }
 
 module.exports.createToken = createToken;

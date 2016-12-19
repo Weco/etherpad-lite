@@ -64,7 +64,11 @@ exports.expressCreateServer = function(hookName, args) {
 	app.use(helmet());
 	app.use(bodyParser.json({ limit: '50mb' }));
 	app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-	app.use(validator());
+	app.use(validator({
+		customValidators: {
+			exists: value => value !== undefined
+		}
+	}));
 	app.use(cookieParser(settings.sessionKey, {}));
 	app.use(express.static(__dirname + '/static'));
 
@@ -81,3 +85,18 @@ exports.expressCreateServer = function(hookName, args) {
 		response.send(fs.readFileSync(path.resolve(__dirname, './index.html'), 'utf-8'));
 	}
 };
+
+exports.eejsBlock_editbarMenuRight = function (hookName, context, cb) {
+	const button = '<li id="pad_privacy_settings"><a title="Privacy settings"><span class="buttonicon buttonicon-lock"></span></a></li><li class="separator"></li>';
+	const regExp = /^(.*?)<li([^<]*?)data-key="showusers">(.*?)<\/li>(.*?)$/m;
+
+	context.content = context.content.replace(/\n|\r/g, '').replace(regExp, '$1' + button + '<li$2data-key="showusers">$3</li>$4');
+
+	return cb();
+}
+
+exports.eejsBlock_scripts = function (hookName, context, cb) {
+	context.content += '<script src="/static/plugins/ep_open/static/js/editor.js"></script>';
+
+	return cb();
+}

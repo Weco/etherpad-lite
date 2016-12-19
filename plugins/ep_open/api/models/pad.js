@@ -3,6 +3,7 @@
 const Sequelize = require('sequelize');
 const ModelBase = require('./base');
 const User = require('./user');
+const Permission = require('./permission');
 const randomString = require('../common/helpers').randomString;
 
 const Pad = ModelBase('pad', {
@@ -19,12 +20,6 @@ const Pad = ModelBase('pad', {
 	views: Sequelize.INTEGER,
 	ownerId: Sequelize.UUID
 }, {
-	defaultScope: {
-		include: [{
-			model: User,
-			as: 'owner'
-		}]
-	},
 	scopes: {
 		full: {
 			attributes: {
@@ -35,11 +30,26 @@ const Pad = ModelBase('pad', {
 				as: 'owner'
 			}],
 			order: [['createdAt']]
+		},
+		withPermissions: {
+			attributes: {
+				exclude: ['ownerId']
+			},
+			include: [{
+				model: Permission,
+				as: 'permissions'
+			}, {
+				model: User,
+				as: 'owner'
+			}]
 		}
 	}
 });
 
 User.hasMany(Pad, { foreignKey: 'ownerId', as: 'owner' });
 Pad.belongsTo(User, { foreignKey: 'ownerId', as: 'owner' });
+
+Pad.hasMany(Permission, { foreignKey: 'padId' });
+Permission.belongsTo(Pad, { foreignKey: 'padId' });
 
 module.exports = Pad;
