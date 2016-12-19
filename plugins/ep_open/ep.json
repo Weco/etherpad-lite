@@ -4,7 +4,12 @@
 		"priority": 10,
 		"hooks": {
 			"expressCreateServer": "ep_open/hooks.js",
-			"padUpdate": "ep_open/api/controllers/pads.js"
+			"padUpdate": "ep_open/api/controllers/pads.js",
+			"eejsBlock_editbarMenuRight": "ep_open/hooks.js",
+			"eejsBlock_scripts": "ep_open/hooks.js"
+		},
+		"client_hooks": {
+			"aceEditEvent": "ep_open/static/js/hooks"
 		}
 	}]
 }

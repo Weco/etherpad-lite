@@ -220,8 +220,19 @@ exports.handleMessage = function(client, message)
       if (thisSession.readonly) {
         messageLogger.warn("Dropped message, COLLABROOM for readonly pad");
       } else if (message.data.type == "USER_CHANGES") {
-        stats.counter('pendingEdits').inc()
-        padChannels.emit(message.padId, {client: client, message: message});// add to pad queue
+        var auth = sessioninfos[client.id].auth;
+
+        // Check whether user has permission for writing to this pad
+        securityManager.checkPermissions(auth.padID, 'write', auth.token, function(error, isAllowed) {
+          if (error) {
+            messageLogger.error(error);
+          } else if (isAllowed) {
+            stats.counter('pendingEdits').inc()
+            padChannels.emit(message.padId, {client: client, message: message});// add to pad queue
+          } else {
+            messageLogger.warn("Dropped message, user doesn't have permission to edit this pad");
+          }
+        });
       } else if (message.data.type == "USERINFO_UPDATE") {
         handleUserInfoUpdate(client, message);
       } else if (message.data.type == "CHAT_MESSAGE") {

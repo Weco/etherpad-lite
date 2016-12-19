@@ -2,12 +2,14 @@
 
 const _ = require('lodash');
 const co = require('co');
-const md5 = require('md5');
 const padManager = require('ep_etherpad-lite/node/db/PadManager');
 const Changeset = require("ep_etherpad-lite/static/js/Changeset");
 const logger = require('ep_etherpad-lite/node_modules/log4js').getLogger('Pads API');
 const helpers = require('../common/helpers');
 const socketio = require('../common/socketio');
+const access = require('../common/access');
+const getAllowedOperations = access.getAllowedOperations;
+const checkPermissionsMW = access.checkPermissionsMW;
 const async = helpers.async;
 const responseError = helpers.responseError;
 const collectData = helpers.collectData;
@@ -16,6 +18,7 @@ const promiseWrapper = helpers.promiseWrapper;
 const uploadImage = helpers.uploadImage;
 const User = require('../models/user');
 const Pad = require('../models/pad');
+const Permission = require('../models/permission');
 const rootHierarchy = {
 	object: {},
 	store: {}
@@ -45,11 +48,11 @@ module.exports = api => {
 	}));
 
 	api.get('/pads/:id', async(function*(request, response) {
-		let pad = yield Pad.scope('full').findById(request.params.id);
+		let pad = yield Pad.scope('withPermissions').findById(request.params.id);
 
 		if (!pad) {
 			if (request.params.id === 'root') {
-				pad = yield Pad.scope('full').create({
+				pad = yield Pad.scope('withPermissions').create({
 					id: 'root',
 					type: 'root',
 					title: 'Open companies'
@@ -95,7 +98,7 @@ module.exports = api => {
 		});
 	}));
 
-	api.put('/pads/:id', async(function*(request, response) {
+	api.put('/pads/:id', checkPermissionsMW('write'), async(function*(request, response) {
 		const pad = yield Pad.scope('full').findById(request.params.id);
 		const padTitle = pad.title;
 
@@ -119,7 +122,7 @@ module.exports = api => {
 		return pad;
 	}));
 
-	api.delete('/pads/:id', async(function*(request, response) {
+	api.delete('/pads/:id', checkPermissionsMW('manage'), async(function*(request, response) {
 		const pad = yield Pad.scope('full').findById(request.params.id);
 
 		if (!pad) {
@@ -151,6 +154,73 @@ module.exports = api => {
 
 		return { imagePath };
 	}));
+
+	api.get('/pads/:id/operations', async(function*(request) {
+		return yield getAllowedOperations(request.params.id, null, request.token);
+	}));
+
+	api.get('/pads/:id/permissions', async(function*(request) {
+		return yield Permission.findAll({
+			where: {
+				padId: request.params.id
+			}
+		});
+	}));
+
+	api.post('/pads/:id/permissions', checkPermissionsMW('manage'), async(function*(request, response) {
+		request.checkBody('permissions', 'Permission is required').notEmpty();
+		request.checkErrors();
+
+		const pad = yield Pad.scope('withPermissions').findById(request.params.id);
+		const permissions = request.body.permissions;
+		const results = [];
+
+		if (!pad) {
+			return responseError(response, 'Pad is not found');
+		}
+
+		for (let i = 0; i < permissions.length; i++) {
+			results.push(yield Permission.create(Object.assign({
+				padId: pad.id,
+				ownerId: request.token && request.token.user && request.token.user.id
+			}, permissions[i])));
+		}
+
+		return results;
+	}));
+
+	api.put('/pads/:id/permissions', checkPermissionsMW('manage'), async(function*(request, response) {
+		request.checkBody('permissions', 'Permission is required').exists();
+		request.checkErrors();
+
+		const pad = yield Pad.scope('withPermissions').findById(request.params.id);
+		const permissions = request.body.permissions;
+		const results = [];
+
+		if (!pad) {
+			return responseError(response, 'Pad is not found');
+		}
+
+		for (let i = 0; i < permissions.length; i++) {
+			results.push(yield Permission.create(Object.assign({
+				padId: pad.id,
+				ownerId: request.token && request.token.user && request.token.user.id
+			}, permissions[i])));
+		}
+
+		// Destroy existed permissions
+		if (pad.permissions.length) {
+			yield Permission.destroy({
+				where: {
+					id: {
+						$in: pad.permissions.map(permission => permission.id)
+					}
+				}
+			});
+		}
+
+		return results;
+	}));
 };
 
 module.exports.padUpdate = function(hookName, args) {
@@ -165,7 +235,7 @@ module.exports.padUpdate = function(hookName, args) {
 			co.wrap(buildRootHierarchy)();
 		}
 	}
-}
+};
 
 /**
  * Check whether passed value of link is external link

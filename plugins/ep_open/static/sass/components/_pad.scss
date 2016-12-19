@@ -251,6 +251,10 @@
 	display: block;
 }
 
+.pad__modal--privacy {
+	max-width: 320px;
+}
+
 .pad__modal__inner {
 	padding: 10px;
 	border-radius: 0 0 6px 6px;
@@ -515,4 +519,18 @@
 	line-height: 34px;
 	padding: 0 12px;
 	font-size: 14px;
+}
+
+.pad__mode {
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	z-index: 3;
+	height: 28px;
+	font: 14px/28px $mainFont;
+	padding: 0 10px;
+	border: 1px solid #ccc;
+	border-radius: 4px 4px 0 0;
+	background: #fff;
+	transform: translateX(-50%);
 }

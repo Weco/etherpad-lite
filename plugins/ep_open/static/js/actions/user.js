@@ -141,5 +141,13 @@ export function register(tree, data) {
 }
 
 export function logout(tree) {
-	setToken(tree, null);
+	const token = tree.get('token');
+
+	if (token && token.id) {
+		request(`/tokens/${token.id}`, {
+			method: 'DELETE'
+		})
+		.then(() => setToken(tree, null))
+		.catch(errorHandler(tree));
+	}
 }

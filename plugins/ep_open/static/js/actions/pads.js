@@ -49,12 +49,20 @@ export function fetchPadsByIds(tree, ids) {
 
 export function setCurrentPad(tree, id = '') {
 	tree.set('currentPadId', id);
+
+	const currentPad = tree.get('currentPad');
+
+	if (!currentPad.permissions) {
+		request(`/pads/${id}`)
+			.then(pad => setTimeout(() => tree.selectedItem('currentPad').set(pad)))
+			.catch(errorHandler(tree));
+	}
 }
 
 export function getCurrentPad(tree, id = '') {
 	tree.set('currentPadId', id);
 
-	if (!tree.get('currentPad').responses) {
+	if (!tree.get('currentPad').permissions) {
 		request(`/pads/${id}`)
 			.then(pad => {
 				tree.selectedItem('currentPad').set(pad);
@@ -145,4 +153,17 @@ export function addPadsHistoryEntry(tree, entry) {
 
 export function removePadsHistoryEntry(tree, url) {
 	setPadHistory(tree, tree.get('padsHistory').filter(entry => entry.url !== url));
+}
+
+export function updatePermissions(tree, padId, permissions) {
+	request(`/pads/${padId}/permissions`, {
+		method: 'PUT',
+		data: { permissions }
+	})
+	.then(permissions => {
+		const pads = tree.get('pads');
+
+		tree.set('pads', pads.map(pad => pad.id === padId ? Object.assign({}, pad, { permissions }) : pad));
+	})
+	.catch(errorHandler(tree));
 }

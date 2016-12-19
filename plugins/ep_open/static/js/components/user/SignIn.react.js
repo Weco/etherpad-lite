@@ -20,7 +20,7 @@ export default class SignIn extends Base {
 	componentWillReceiveProps(newProps, props) {
 		// If token has been changed, we assume that user is logged in and go to the root page
 		if (newProps.token && (!props.token || props.token.id !== newProps.token.id)) {
-			this.context.router.push(this.props.location.state.goTo || '/');
+			this.context.router.push(this.props.modalGoTo || '/');
 		}
 	}
 

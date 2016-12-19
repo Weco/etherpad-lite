@@ -353,6 +353,12 @@
       "css": "link",
       "code": 59449,
       "src": "fontawesome"
+    },
+    {
+      "uid": "c1f1975c885aa9f3dad7810c53b82074",
+      "css": "lock",
+      "code": 59450,
+      "src": "fontawesome"
     }
   ]
 }

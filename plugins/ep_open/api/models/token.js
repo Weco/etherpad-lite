@@ -10,6 +10,7 @@ const Token = ModelBase('token', {
 		type: Sequelize.UUID,
 		defaultValue: Sequelize.UUIDV4
 	},
+	etherpadToken: Sequelize.STRING,
 	expires: Sequelize.DATE,
 	userId: {
 		type: Sequelize.UUID,

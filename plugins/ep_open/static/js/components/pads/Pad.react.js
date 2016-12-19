@@ -6,10 +6,12 @@ import DocumentTitle from 'react-document-title';
 import Draggable from 'react-draggable';
 import Reorder from 'react-reorder';
 import messages from '../../utils/messages';
+import { isOperationAllowed } from '../../utils/helpers';
 import Base from '../Base.react';
 import EditableText from '../common/EditableText.react';
 import PadsHierarchy from './PadsHierarchy.react';
 import PadLinkModal from './PadLinkModal.react';
+import PadPrivacyModal from './PadPrivacyModal.react';
 import * as padsActions from '../../actions/pads';
 import * as commonActions from '../../actions/common';
 
@@ -61,7 +63,7 @@ export default class Pad extends Base {
 		}
 
 		if (nextProps.params.padId !== this.props.params.padId) {
-			this.props.actions.setCurrentPad(nextProps.params.padId);
+			this.props.actions.setCurrentPad(nextProps.params.padId || 'root');
 		}
 	}
 
@@ -209,6 +211,7 @@ export default class Pad extends Base {
 	render() {
 		const { currentPad } = this.props;
 		const title = `${currentPad.title && currentPad.id !== 'root' ? (currentPad.title + ' | ') : ''}Open Companies`;
+		const isReadOnly = isOperationAllowed('read') && !isOperationAllowed('write');
 
 		return (
 			<DocumentTitle title={title}>
@@ -227,6 +230,7 @@ export default class Pad extends Base {
 						<div className={classNames('pad__resizer', { 'hidden': currentPad.type === 'root' })} ref='resizer' />
 					</Draggable>
 					<PadLinkModal pad={currentPad} createPad={this.props.actions.createPad} />
+					<PadPrivacyModal />
 					<PadsHierarchy isActive={this.state.isHierarchyActive} currentPad={currentPad} tabs={this.tabs} />
 					<div
 						className='pad__hierarchy_toggler'
@@ -238,6 +242,7 @@ export default class Pad extends Base {
 						onClick={this.toggleMode.bind(this, 'isFullscreenActive', 'pad_fullscreen')}>
 						<i className='fa fa-arrows-alt' />
 					</div>
+					{isReadOnly ? <div className='pad__mode'>Read only</div> : ''}
 				</div>
 			</DocumentTitle>
 		);

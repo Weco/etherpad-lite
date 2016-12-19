@@ -15,9 +15,9 @@ const checkUserUniq = require('./users').checkUserUniq;
 const updateAuthorName = require('./users').updateAuthorName;
 
 module.exports = api => {
-    api.get('/profile', checkAuth, async(function*(request, response) {
+	api.get('/profile', checkAuth, async(function*(request, response) {
 		return request.token.user;
-    }));
+	}));
 
 	api.put('/profile', checkAuth, async(function*(request, response) {
 		const user = request.token.user;

@@ -11,8 +11,6 @@ export function removeError(tree, id) {
 
 export function errorHandler(tree) {
 	return response => {
-		const message = response.message || response.error;
-
-		message && addError(tree, message);
+		(response.errors || [response.message || response.error]).forEach(error => error && addError(tree, error));
 	};
 }
