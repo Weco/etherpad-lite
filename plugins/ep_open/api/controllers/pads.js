@@ -55,7 +55,13 @@ module.exports = api => {
 				pad = yield Pad.scope('withPermissions').create({
 					id: 'root',
 					type: 'root',
-					title: 'Wikineering'
+					title: 'Wikineering',
+					permissions: [{
+						role: 'user',
+						operation: 'write'
+					}]
+				}, {
+					include: [Permission]
 				});
 				co.wrap(buildRootHierarchy)();
 			} else {
@@ -86,9 +92,15 @@ module.exports = api => {
 		}
 
 		data.id = id;
+		data.permissions = [{
+			role: 'user',
+			operation: 'write'
+		}];
 
 		yield promiseWrapper(padManager, 'getPad', [data.id]);
-		const pad = yield Pad.scope('full').create(data);
+		const pad = yield Pad.scope('full').create(data, {
+			include: [Permission]
+		});
 
 		return yield pad.reload({
 			include: [{

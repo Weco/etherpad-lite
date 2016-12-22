@@ -10,6 +10,7 @@ export default class Modal extends Component {
 		super();
 		this.state = { modalTop: 0};
 		this.closeModal = this.closeModal.bind(this);
+		this.handleResize = this.handleResize.bind(this);
 	}
 
 	handleResize() {
@@ -25,8 +26,8 @@ export default class Modal extends Component {
 	}
 
 	componentDidMount() {
-		window.addEventListener('resize', this.handleResize.bind(this));
-		document.body.addEventListener('keydown', this.closeModal.bind(this));
+		window.addEventListener('resize', this.handleResize);
+		document.body.addEventListener('keydown', this.closeModal);
 		this.handleResize();
 	}
 
