@@ -54,6 +54,9 @@ export default class Pad extends Base {
 
 			this.goToTab(padId);
 		});
+
+		this.updateEditbarOffset = this.updateEditbarOffset.bind(this);
+		window.addEventListener('resize', this.updateEditbarOffset);
 	}
 
 	componentWillReceiveProps(nextProps) {
@@ -64,6 +67,8 @@ export default class Pad extends Base {
 
 		if (nextProps.params.padId !== this.props.params.padId) {
 			this.props.actions.setCurrentPad(nextProps.params.padId || 'root');
+			// Clean pad offset until new pad data will be loaded and it will be updated with actual value
+			this.updateCurrentPadOffset(0);
 		}
 	}
 
@@ -103,9 +108,18 @@ export default class Pad extends Base {
 			const iframe = document.getElementById(this.props.currentPad.id);
 
 			if (iframe) {
-				this.refs.resizer.style.left = iframe.style.left = offset + 'px';
+				this.refs.content.style.left = iframe.style.left = offset + 'px';
+				this.updateEditbarOffset();
 			}
 		}
+	}
+
+	updateEditbarOffset() {
+		const iframe = document.getElementById(this.props.currentPad.id);
+		const iframeEl = iframe && iframe.querySelector('.pad__iframe__el');
+		const editbar = iframeEl && iframeEl.contentDocument.getElementById('editbar');
+
+		this.refs.contentInner.style.top = editbar ? (editbar.offsetHeight + 'px') : null;
 	}
 
 	getOffsetFromEvent(event) {
@@ -113,7 +127,7 @@ export default class Pad extends Base {
 	}
 
 	onDragStart(event, data) {
-		this.currentPadX = parseInt(this.refs.resizer.style.left) - event.clientX;
+		this.currentPadX = parseInt(this.refs.content.style.left) - event.clientX;
 		this.maxPadOffset = this.refs.iframes.offsetWidth - 100;
 	}
 
@@ -222,15 +236,20 @@ export default class Pad extends Base {
 						</div>
 					</div>
 					<div className='pad__iframes' ref='iframes' onClick={this.onIframeClick.bind(this)} />
-					<Draggable
-						axis='none'
-						onStart={this.onDragStart.bind(this)}
-						onDrag={this.onDrag.bind(this)}
-						onStop={this.onDragStop.bind(this)}>
-						<div className={classNames('pad__resizer', { 'hidden': currentPad.type === 'root' })} ref='resizer' />
-					</Draggable>
-					<PadLinkModal pad={currentPad} createPad={this.props.actions.createPad} />
-					<PadPrivacyModal />
+					<div className='pad__content' ref='content'>
+						<Draggable
+							axis='none'
+							onStart={this.onDragStart.bind(this)}
+							onDrag={this.onDrag.bind(this)}
+							onStop={this.onDragStop.bind(this)}>
+							<div className={classNames('pad__resizer', { 'hidden': currentPad.type === 'root' })} ref='resizer' />
+						</Draggable>
+						<div className='pad__content__inner' ref='contentInner'>
+							<PadLinkModal pad={currentPad} createPad={this.props.actions.createPad} />
+							<PadPrivacyModal />
+							{isReadOnly ? <div className='pad__mode'>Read only</div> : ''}
+						</div>
+					</div>
 					<PadsHierarchy isActive={this.state.isHierarchyActive} currentPad={currentPad} tabs={this.tabs} />
 					<div
 						className='pad__hierarchy_toggler'
@@ -242,7 +261,6 @@ export default class Pad extends Base {
 						onClick={this.toggleMode.bind(this, 'isFullscreenActive', 'pad_fullscreen')}>
 						<i className='fa fa-arrows-alt' />
 					</div>
-					{isReadOnly ? <div className='pad__mode'>Read only</div> : ''}
 				</div>
 			</DocumentTitle>
 		);
@@ -286,9 +304,12 @@ export default class Pad extends Base {
 
 					if (isCurrent) {
 						iframeEl.src = source;
-						iframeEl.onload = function() {
-							// Load background pads in 2 seconds after current iframe loading
-							setTimeout(() => unloadedIframes.forEach(data => data.element.src = data.source), 2000);
+						iframeEl.onload = () => {
+							setTimeout(() => {
+								// Load background pads in 2 seconds after current iframe loading
+								unloadedIframes.forEach(data => data.element.src = data.source);
+								this.updateEditbarOffset();
+							}, 2000);
 						};
 					} else {
 						unloadedIframes.push({
@@ -305,7 +326,8 @@ export default class Pad extends Base {
 				iframe.style.left = offset + 'px';
 
 				if (isCurrent) {
-					this.refs.resizer.style.left = offset + 'px';
+					this.refs.content.style.left = offset + 'px';
+					this.updateEditbarOffset();
 				}
 
 				this.currentIframes.push({
@@ -321,5 +343,6 @@ export default class Pad extends Base {
 	componentWillUnmount() {
 		this.cancelOpenPadSubscription && this.cancelOpenPadSubscription();
 		this.props.actions.removeLayoutMode('pad_hierarchy');
+		window.removeEventListener('resize', this.updateEditbarOffset);
 	}
 }

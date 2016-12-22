@@ -171,6 +171,19 @@
 	background: #f7f7f7;
 }
 
+.pad__content,
+.pad__content__inner {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+.pad__content__inner {
+	top: 38px;
+}
+
 .pad__resizer {
 	position: absolute;
 	top: 0;
@@ -195,7 +208,7 @@
 
 .pad__modal {
 	position: absolute;
-	top: 37px;
+	top: -1px;
 	right: 20px;
 	width: 80%;
 	max-width: 500px;
@@ -228,22 +241,11 @@
 		background: #fff;
 	}
 
-	@media(max-width: 950px) {
-		top: 69px;
-	}
-
 	@media(max-width: 346px) {
 		top: 101px;
 		width: auto;
 		left: 10px;
 		right: 10px;
-	}
-
-	@media only screen and (max-device-width: 720px) and (min-device-width: 320px) and (max-width: 600px) {
-		top: 36px;
-	}
-	@media only screen and (max-device-width: 720px) and (min-device-width: 320px) and (max-width: 489px) {
-		top: 68px;
 	}
 }
 
