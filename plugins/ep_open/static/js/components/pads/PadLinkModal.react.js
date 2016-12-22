@@ -55,7 +55,8 @@ export default class PadLinkModal extends Base {
 		}
 
 		this.setState({
-			isActive: nextState
+			isActive: nextState,
+			isCompanyLink: this.props.pad.type === 'root'
 		});
 	}
 
