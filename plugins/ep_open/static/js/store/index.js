@@ -16,7 +16,6 @@ const tree = new Baobab({
 	currentCompanyId: null,
 
 	pads: [],
-	padsTotal: 0,
 	currentPadId: null,
 	currentPad: selectedItem('pads', 'currentPadId'),
 	newPad: null,

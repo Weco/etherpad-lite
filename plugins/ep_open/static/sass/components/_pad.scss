@@ -2,7 +2,7 @@
 	position: relative;
 	width: 100%;
 	height: 100%;
-	border-top: 1px solid #ccc;
+	border-top: 1px solid $greyBorderColor;
 }
 
 .pad__tabs {
@@ -44,7 +44,7 @@
 	padding: 4px 12px;
 	font: 14px/23px $mainFont;
 	border-radius: 4px 4px 0 0;
-	border: 1px solid #ccc;
+	border: 1px solid $greyBorderColor;
 	border-bottom: none;
 	background: $greyColor;
 	height: 31px;
@@ -61,7 +61,7 @@
 }
 
 .pad__tab--link {
-	color: $activeColor;
+	color: $linkColor;
 	text-decoration: underline;
 
 	&:not(:first-child) {
@@ -113,7 +113,7 @@
 .pad__tab__separator {
 	display: inline-block;
 	height: 24px;
-	background: #ccc;
+	background: $greyBorderColor;
 	width: 2px;
 	margin: 3px 0 3px 16px;
 	vertical-align: top;
@@ -127,7 +127,7 @@
 		margin-left: 16px;
 
 		&.placeholder {
-			background: #ccc;
+			background: $greyBorderColor;
 		}
 
 		&.dragged {
@@ -196,7 +196,7 @@
 	left: 0;
 	width: 2px;
 	height: 100%;
-	background: #ccc;
+	background: $greyBorderColor;
 	border-left: 1px solid #bbb;
 	margin-left: -2px;
 	z-index: 102;
@@ -220,13 +220,6 @@
 	max-width: 500px;
 	display: none;
 	z-index: 100;
-
-	.btn {
-		float: right;
-		height: 36px;
-		width: 100px;
-		padding: 0 10px;
-	}
 
 	.Select {
 		width: calc(100% - 110px);
@@ -259,15 +252,25 @@
 	display: block;
 }
 
-.pad__modal--privacy {
+.pad__modal--link {
+	.btn {
+		float: right;
+		height: 36px;
+		width: 100px;
+		padding: 0 10px;
+	}
+}
+
+.pad__modal--privacy,
+.pad__modal--edits {
 	max-width: 320px;
 }
 
 .pad__modal__inner {
 	padding: 10px;
-	border-radius: 0 0 6px 6px;
-	border: 1px solid #ccc;
-	background: linear-gradient($lightGreyColor, $greyColor);
+	border-radius: 0 0 3px 3px;
+	border: 1px solid $greyBorderColor;
+	background: $lightGreyColor;
 	font-size: 14px;
 	height: 100%;
 }
@@ -318,14 +321,15 @@
 	position: absolute;
 	left: 10px;
 	bottom: 10px;
-	background: linear-gradient(#fff,#f0f0f0);
+	background: $greyColor;
+	width: 28px;
 	height: 28px;
 	padding: 4px 6px;
 	font: 14px/20px Arial;
-	border: 1px solid #ccc;
 	border-radius: 3px;
 	z-index: 102;
 	cursor: pointer;
+	text-align: center;
 }
 
 .pad__fullscreen_toggler {
@@ -363,7 +367,7 @@
 	right: 0;
 	width: 3px;
 	height: 100%;
-	background: #ccc;
+	background: $greyBorderColor;
 	cursor: ew-resize;
 }
 
@@ -394,7 +398,7 @@
 			left: -24px;
 			width: 20px;
 			height: 2px;
-			background: #ccc;
+			background: $greyBorderColor;
 			top: 9px;
 		}
 
@@ -409,7 +413,7 @@
 			left: -24px;
 			top: -13px;
 			bottom: -10px;
-			background: #ccc;
+			background: $greyBorderColor;
 		}
 
 		&:last-child:after {
@@ -424,7 +428,7 @@
 }
 
 .pad__hierarchy__node--main {
-	border-bottom: 1px solid #ccc;
+	border-bottom: 1px solid $greyBorderColor;
 	margin: -1px 0 16px;
 	padding: 0 0 7px;
 }
@@ -477,7 +481,7 @@
 	}
 
 	.pad__hierarchy__node--inactive > & {
-		color: #ccc;
+		color: $greyBorderColor;
 	}
 
 	.fa-eye,
@@ -533,15 +537,14 @@
 	font-size: 14px;
 }
 
-.pad__mode {
+.pad__message {
 	position: absolute;
 	bottom: 0;
 	left: 50%;
 	z-index: 3;
-	height: 28px;
-	font: 14px/28px $mainFont;
-	padding: 0 10px;
-	border: 1px solid #ccc;
+	font: 14px/18px $mainFont;
+	padding: 10px;
+	border: 1px solid $greyBorderColor;
 	border-radius: 4px 4px 0 0;
 	background: #fff;
 	transform: translateX(-50%);

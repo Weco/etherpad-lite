@@ -94,7 +94,7 @@ function Ace2Editor()
   var aceFunctionsPendingInit = ['importText', 'importAText', 'focus',
   'setEditable', 'getFormattedCode', 'setOnKeyPress', 'setOnKeyDown',
   'setNotifyDirty', 'setProperty', 'setBaseText', 'setBaseAttributedText',
-  'applyChangesToBase', 'applyPreparedChangesetToBase',
+  'applyChangesToBase', 'applyPreparedChangesetToBase', 'revertChangesFromBase',
   'setUserChangeNotificationCallback', 'setAuthorInfo',
   'setAuthorSelectionRange', 'callWithAce', 'execCommand', 'replaceRange'];
 
@@ -115,6 +115,11 @@ function Ace2Editor()
   editor.getFrame = function()
   {
     return info.frame || null;
+  };
+
+  editor.getBaseText = function()
+  {
+    return info.ace_getBaseText();
   };
 
   editor.getDebugProperty = function(prop)

@@ -1,0 +1,34 @@
+.edits__message {
+	padding: 20px 10px;
+	text-align: center;
+}
+
+.edit {
+	padding: 10px 0;
+
+	&:not(:first-child) {
+		border-top: 1px solid #ccc;
+	}
+}
+
+.edit__author {
+	font-weight: bold;
+}
+
+.edit__data {
+	float: right;
+}
+
+.edit__message {
+	padding-top: 10px;
+}
+
+.edit__btns {
+	padding-top: 10px;
+
+	.btn {
+		&:not(:first-child) {
+			margin-left: 10px;
+		}
+	}
+}

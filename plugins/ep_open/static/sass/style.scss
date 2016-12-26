@@ -1,12 +1,15 @@
 @import "normilize";
 @import "mixins";
 
-$activeColor: #1b58bb;
+$activeColor: #4d90fe;
 $darkColor: #1e2326;
 $textColor: #555;
+$linkColor: #1b58bb;
 $greyColor: #fafafa;
 $lightGreyColor: #fcfcfc;
+$greyBorderColor: #ccc;
 $redColor: #f94747;
+$greenColor: #1FA15D;
 $contentMaxWidth: 600px;
 
 $mainFont: arial, sans-serif;
@@ -29,3 +32,4 @@ $animationDuration: .3s;
 @import "components/pad";
 @import "components/notifications";
 @import "components/avatar";
+@import "components/edits";

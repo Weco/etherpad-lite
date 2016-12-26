@@ -14,21 +14,6 @@ export function getCurrentPadId(tree) {
 	}
 }
 
-export function fetchPads(tree, query) {
-	const data = {};
-
-	if (query) {
-		data.query = query;
-	}
-
-	return request(`/pads`, { data })
-		.then(response => {
-			tree.set('pads', response.rows);
-			tree.set('padsTotal', parseInt(response.count));
-		})
-		.catch(errorHandler(tree));
-}
-
 export function fetchPadsByIds(tree, ids) {
 	if (ids.length === 1) {
 		return request(`/pads/${ids[0]}`)
@@ -41,7 +26,7 @@ export function fetchPadsByIds(tree, ids) {
 			data: { ids }
 		})
 		.then(response => {
-			tree.set('pads', response.rows);
+			tree.set('pads', response);
 		})
 		.catch(errorHandler(tree));
 	}
@@ -49,14 +34,6 @@ export function fetchPadsByIds(tree, ids) {
 
 export function setCurrentPad(tree, id = '') {
 	tree.set('currentPadId', id);
-
-	const currentPad = tree.get('currentPad');
-
-	if (!currentPad.permissions) {
-		request(`/pads/${id}`)
-			.then(pad => setTimeout(() => tree.selectedItem('currentPad').set(pad)))
-			.catch(errorHandler(tree));
-	}
 }
 
 export function getCurrentPad(tree, id = '') {
@@ -166,4 +143,78 @@ export function updatePermissions(tree, padId, permissions) {
 		tree.set('pads', pads.map(pad => pad.id === padId ? Object.assign({}, pad, { permissions }) : pad));
 	})
 	.catch(errorHandler(tree));
+}
+
+export function createSuggestedEdits(tree, padId, data) {
+	request(`/pads/${padId}/edits`, {
+		method: 'POST',
+		data
+	})
+	.then(edit => {
+		tree.set('pads', tree.get('pads').map(pad => {
+			if (pad.id === padId) {
+				pad = Object.assign({}, pad);
+				pad.edits = (pad.edits || []).concat(edit);
+			}
+
+			return pad;
+		}));
+	})
+	.catch(errorHandler(tree));
+}
+
+export function updateSuggestedEdits(tree, padId, editId, data) {
+	request(`/pads/${padId}/edits/${editId}`, {
+		method: 'PUT',
+		data
+	})
+	.then(edit => updateEdits(tree, padId, edit))
+	.catch(errorHandler(tree));
+}
+
+export function approveSuggestedEdits(tree, padId, editId, changes) {
+	request(`/pads/${padId}/edits/${editId}/approve`, {
+		method: 'POST',
+		data: { changes }
+	})
+	.then(edit => updateEdits(tree, padId, edit))
+	.catch(errorHandler(tree));
+}
+
+export function rejectSuggestedEdits(tree, padId, editId) {
+	request(`/pads/${padId}/edits/${editId}/reject`, {
+		method: 'POST'
+	})
+	.then(edit => updateEdits(tree, padId, edit))
+	.catch(errorHandler(tree));
+}
+
+function updateEdits(tree, padId, updatedEdit) {
+	tree.set('pads', tree.get('pads').map(pad => {
+		if (pad.id === padId) {
+			pad = Object.assign({}, pad);
+
+			pad.edits = (
+				pad.edits || []
+			)
+			.map(edit => edit.id === updatedEdit.id ? updatedEdit : edit)
+			.filter(edit => edit.status === 'pending');
+		}
+
+		return pad;
+	}));
+}
+
+export function fetchCurrentPadEdits(tree) {
+	const currentPadId = tree.get('currentPadId');
+
+	if (currentPadId) {
+		request(`/pads/${currentPadId}/edits/`)
+			.then(edits => {
+				const currentPad = tree.selectedItem('currentPad');
+
+				currentPad.set(Object.assign({}, currentPad.get(), { edits }));
+			})
+			.catch(errorHandler(tree));
+	}
 }

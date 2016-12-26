@@ -6,7 +6,6 @@ import { Root } from 'baobab-react/wrappers';
 import tree from './store';
 import App from './components/App.react';
 import Pad from './components/pads/Pad.react';
-import PadForm from './components/pads/PadForm.react';
 import SignIn from './components/user/SignIn.react';
 import SignUp from './components/user/SignUp.react';
 import Profile from './components/user/Profile.react';
@@ -24,9 +23,7 @@ function init() {
 				<Route name='app' path='/' component={App}>
 					<IndexRedirect to='/pads' />
 					<Route name='pad' path='/pads' component={Pad} />
-					<Route name='pad' path='/pads/new' component={PadForm} />
 					<Route name='pad' path='/pads/:padId' component={Pad} />
-					<Route name='pad' path='/pads/:padId/edit' component={PadForm} />
 					<Route name='signin' path='/signin' component={SignIn} />
 					<Route name='signup' path='/signup' component={SignUp} />
 					<Route name='profile' path='/profile' component={Profile} />

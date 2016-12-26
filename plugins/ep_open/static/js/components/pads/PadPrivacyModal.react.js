@@ -151,7 +151,7 @@ export default class PadPrivacyModal extends Base {
 									<option value='owner'>Only owner</option>
 								</select> can edit this pad.
 							</div>
-							<button type='submit' className='form__btn'>{this.state.isSaving ? 'Saving' : 'Save'}</button>
+							<button type='submit' className='form__btn btn btn--small'>{this.state.isSaving ? 'Saving' : 'Save'}</button>
 						</form>
 					</div>
 				</div>

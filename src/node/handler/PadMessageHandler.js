@@ -231,6 +231,10 @@ exports.handleMessage = function(client, message)
             padChannels.emit(message.padId, {client: client, message: message});// add to pad queue
           } else {
             messageLogger.warn("Dropped message, user doesn't have permission to edit this pad");
+            client.json.send({
+              type: 'COLLABROOM',
+              data: { type: 'DECLINE_COMMIT' }
+            });
           }
         });
       } else if (message.data.type == "USERINFO_UPDATE") {
