@@ -5,7 +5,7 @@ $borderColor: #e5e5e5;
 	padding: 8px;
 	z-index: 1;
 	overflow: hidden;
-	background: #eee;
+	background: $greyColor;
 	height: 20px;
 	box-sizing: content-box;
 }

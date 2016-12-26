@@ -159,11 +159,11 @@ export default class PadEditsModal extends Base {
 									<span className='edit__data'>{niceDate(edit.createdAt, '')}</span>
 									{edit.message ? <div className='edit__message'>{edit.message}</div> : ''}
 									<div className='edit__btns'>
-										<button className='edit__btn' onClick={this.toggleEdit.bind(this, edit)}>
+										<button className='btn btn--small' onClick={this.toggleEdit.bind(this, edit)}>
 											{this.state.activeEditId === edit.id ? 'Hide' : 'Show'}
 										</button>
-										{canWrite ? <button className='edit__btn' onClick={this.approveEdit.bind(this, edit)}>Approve</button> : ''}
-										{canWrite ? <button className='edit__btn' onClick={this.rejectEdit.bind(this, edit)}>Reject</button> : ''}
+										{canWrite ? <button className='btn btn--small btn--green' onClick={this.approveEdit.bind(this, edit)}>Approve</button> : ''}
+										{canWrite ? <button className='btn btn--small btn--red' onClick={this.rejectEdit.bind(this, edit)}>Reject</button> : ''}
 									</div>
 								</div>
 							)) : <div className='edits__messaage'>No edits</div>}

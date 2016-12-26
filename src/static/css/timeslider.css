@@ -13,11 +13,11 @@
   right: 0;
   top: 0;
   background: #f7f7f7;
-  background: -webkit-linear-gradient(#f7f7f7, #f1f1f1 80%);
+  /*background: -webkit-linear-gradient(#f7f7f7, #f1f1f1 80%);
   background: -moz-linear-gradient(#f7f7f7, #f1f1f1 80%);
   background: -o-linear-gradient(#f7f7f7, #f1f1f1 80%);
   background: -ms-linear-gradient(#f7f7f7, #f1f1f1 80%);
-  background: linear-gradient(#f7f7f7, #f1f1f1 80%);
+  background: linear-gradient(#f7f7f7, #f1f1f1 80%);*/
 }
 #timeslider-left {
   height: 63px;
@@ -171,7 +171,7 @@ stepper:active{
   width: 15px;
 }
 #timeslider #timer {
-  background: linear-gradient(#F7F7F7, #F1F1F1 80%) repeat scroll 0% 0% transparent;
+  background: #f7f7f7;
   padding:2px;
   border-radius:2px;
   font-family: Arial, sans-serif;
@@ -223,11 +223,11 @@ stepper:active{
 }
 .timeslider-bar {
   background: #f7f7f7;
-  background: -webkit-linear-gradient(#f7f7f7, #f1f1f1 80%);
+  /*background: -webkit-linear-gradient(#f7f7f7, #f1f1f1 80%);
   background: -moz-linear-gradient(#f7f7f7, #f1f1f1 80%);
   background: -o-linear-gradient(#f7f7f7, #f1f1f1 80%);
   background: -ms-linear-gradient(#f7f7f7, #f1f1f1 80%);
-  background: linear-gradient(#f7f7f7, #f1f1f1 80%);
+  background: linear-gradient(#f7f7f7, #f1f1f1 80%);*/
   overflow: hidden;
   padding-top: 3px;
   width: 100%;

@@ -16,31 +16,33 @@
 }
 
 .btn {
-	//background: $activeColor;
+	background: $activeColor;
 	display: inline-block;
 	text-decoration: none;
-	color: $textColor;
-	//font: bold 14px/48px $mainFont;
-	//letter-spacing: 2px;
-	//text-transform: uppercase;
-	//height: 48px;
+	color: #fff;
+	font: 14px/36px $mainFont;
+	height: 36px;
 	padding: 0 20px;
-	height: 21px;
-	//border-radius: 2px;
+	border-radius: 2px;
 	text-align: center;
-	//cursor: pointer;
-	//border: none;
+	cursor: pointer;
+	border: none;
 	vertical-align: top;
 }
 
 .btn--small {
-	height: 38px;
-	line-height: 38px;
-	font-size: 12px;
+	height: 24px;
+	line-height: 24px;
+	padding: 0 10px;
+	font-size: 13px;
 }
 
 .btn--red {
-	background: #EB1460;
+	background: $redColor;
+}
+
+.btn--green {
+	background: $greenColor;
 }
 
 .checkbox {

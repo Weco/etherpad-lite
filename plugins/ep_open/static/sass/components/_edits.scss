@@ -25,8 +25,10 @@
 
 .edit__btns {
 	padding-top: 10px;
-}
 
-.edit__btn:not(:first-child) {
-	margin-left: 10px;
+	.btn {
+		&:not(:first-child) {
+			margin-left: 10px;
+		}
+	}
 }
