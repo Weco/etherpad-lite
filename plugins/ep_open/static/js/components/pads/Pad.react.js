@@ -12,6 +12,7 @@ import EditableText from '../common/EditableText.react';
 import PadsHierarchy from './PadsHierarchy.react';
 import PadLinkModal from './PadLinkModal.react';
 import PadPrivacyModal from './PadPrivacyModal.react';
+import PadEditsModal from './PadEditsModal.react';
 import * as padsActions from '../../actions/pads';
 import * as commonActions from '../../actions/common';
 
@@ -19,7 +20,8 @@ import * as commonActions from '../../actions/common';
 	cursors: {
 		currentPad: ['currentPad'],
 		pads: ['pads'],
-		padsHistory: ['padsHistory']
+		padsHistory: ['padsHistory'],
+		currentUser: ['currentUser']
 	},
 	actions: Object.assign({}, padsActions, commonActions)
 })
@@ -35,16 +37,19 @@ export default class Pad extends Base {
 
 		this.state = {
 			isFullscreenActive: window.sessionStorage.isFullscreenActive === 'true',
-			isHierarchyActive: window.sessionStorage.isHierarchyActive === 'true'
+			isHierarchyActive: window.sessionStorage.isHierarchyActive === 'true',
+			unsavedChanges: null
 		};
 		this.tabs = (props.location.query.tabs || currentTab).split(',');
+		this.etherpads = {};
+		this.subscriptions = [];
 
 		this.state.isHierarchyActive && props.actions.addLayoutMode('pad_hierarchy');
 		this.state.isFullscreenActive && props.actions.addLayoutMode('pad_fullscreen');
 		props.actions.fetchPadsByIds(this.tabs);
 		props.actions.setCurrentPad(currentTab);
 
-		this.cancelOpenPadSubscription = messages.subscribe('openPad', padId => {
+		this.subscriptions.push(messages.subscribe('openPad', padId => {
 			const currentTabIndex = this.tabs.indexOf(this.props.currentPad.id);
 
 			if (this.tabs[currentTabIndex + 1] !== padId) {
@@ -53,7 +58,24 @@ export default class Pad extends Base {
 			}
 
 			this.goToTab(padId);
-		});
+		}));
+
+		this.subscriptions.push(messages.subscribe('editorInit', data => {
+			const { pad } = data;
+			const padId = pad.getPadId();
+
+			this.etherpads[padId] = data;
+
+			if (padId === this.props.currentPad.id) {
+				this.updataToolbarState();
+			}
+
+			pad.isOperationAllowed = isOperationAllowed;
+			pad.collabClient.setOnUnsavedChanges(unsavedChanges => {
+				this.etherpads[padId].unsavedChanges = unsavedChanges;
+				this.props.currentPad.id === padId && this.setState({ unsavedChanges });
+			});
+		}));
 
 		this.updateEditbarOffset = this.updateEditbarOffset.bind(this);
 		window.addEventListener('resize', this.updateEditbarOffset);
@@ -70,6 +92,56 @@ export default class Pad extends Base {
 			// Clean pad offset until new pad data will be loaded and it will be updated with actual value
 			this.updateCurrentPadOffset(0);
 		}
+
+		if (nextProps.currentPad !== this.props.currentPad) {
+			this.setState({
+				unsavedChanges: this.getCurrentEtherpad().unsavedChanges
+			});
+			this.updataToolbarState();
+		}
+
+		if (nextProps.currentUser !== this.props.currenUser) {
+			// If after authorization, user has write permissions and unsaved changes, save them
+			if (this.state.unsavedChanges && isOperationAllowed('write')) {
+				const { pad } = this.getCurrentEtherpad();
+
+				pad && pad.collabClient.handleUserChanges();
+			}
+
+			this.updataToolbarState();
+		}
+
+		if (nextProps.currentPad.edits !== this.props.currentPad.edits && this.state.unsavedChanges) {
+			const { unsavedChanges } = this.state;
+			let isChangesSaved = false;
+
+			nextProps.currentPad.edits.some(edit => isChangesSaved = edit.changes.changeset === unsavedChanges.changeset);
+
+			if (isChangesSaved) {
+				const { editor } = this.getCurrentEtherpad();
+
+				if (editor && editor.prepareUserChangeset().changeset) {
+					try {
+						editor.applyPreparedChangesetToBase();
+						editor.revertChangesFromBase(unsavedChanges);
+					} catch(e) {
+						editor.callWithAce(ace => ace.frame.contentWindow.parent.location.reload());
+					}
+
+					this.setState({ unsavedChanges: null });
+				}
+			}
+		}
+	}
+
+	getCurrentEtherpad() {
+		return this.etherpads[this.props.currentPad.id] || {};
+	}
+
+	updataToolbarState() {
+		const { toolbar } = this.getCurrentEtherpad();
+
+		toolbar && toolbar[isOperationAllowed('write') ? 'enable' : 'disable']();
 	}
 
 	goToTab(id) {
@@ -175,6 +247,33 @@ export default class Pad extends Base {
 		}
 	}
 
+	submitSuggestedEdits(event) {
+		event.preventDefault();
+
+		if (!this.props.currentUser) {
+			const { location } = this.props;
+			const url = location.pathname + location.search;
+
+			return this.context.router.push({
+				pathname: '/signin',
+				state: {
+					modal: true,
+					returnTo: url,
+					goTo: url
+				}
+			});
+		}
+
+		const padId = this.props.currentPad.id;
+		const changes = this.getCurrentEtherpad().unsavedChanges;
+
+		if (padId && changes) {
+			this.props.actions.createSuggestedEdits(padId, {
+				changes
+			});
+		}
+	}
+
 	buildTabs() {
 		const tabs = [this.getPads().map(pad => {
 			if (!pad) {
@@ -225,7 +324,8 @@ export default class Pad extends Base {
 	render() {
 		const { currentPad } = this.props;
 		const title = `${currentPad.title && currentPad.id !== 'root' ? (currentPad.title + ' | ') : ''}Open Companies`;
-		const isReadOnly = isOperationAllowed('read') && !isOperationAllowed('write');
+		const isReadOnlyChanges = isOperationAllowed('read') && !isOperationAllowed('write') && !!this.state.unsavedChanges;
+		const isAuthorized = !!this.props.currentUser;
 
 		return (
 			<DocumentTitle title={title}>
@@ -247,7 +347,12 @@ export default class Pad extends Base {
 						<div className='pad__content__inner' ref='contentInner'>
 							<PadLinkModal pad={currentPad} createPad={this.props.actions.createPad} />
 							<PadPrivacyModal />
-							{isReadOnly ? <div className='pad__mode'>Read only</div> : ''}
+							<PadEditsModal getCurrentEtherpad={this.getCurrentEtherpad.bind(this)} />
+							{isReadOnlyChanges ? (
+								<div className='pad__message'>
+									You do not have permissions to edit this pad, but you can {isAuthorized ? '' : 'login and '}<a href="" onClick={this.submitSuggestedEdits.bind(this)}>submit</a> your changes on moderation.
+								</div>
+							) : ''}
 						</div>
 					</div>
 					<PadsHierarchy isActive={this.state.isHierarchyActive} currentPad={currentPad} tabs={this.tabs} />
@@ -341,7 +446,7 @@ export default class Pad extends Base {
 	}
 
 	componentWillUnmount() {
-		this.cancelOpenPadSubscription && this.cancelOpenPadSubscription();
+		this.subscriptions.forEach(subscription => subscription && subscription());
 		this.props.actions.removeLayoutMode('pad_hierarchy');
 		window.removeEventListener('resize', this.updateEditbarOffset);
 	}

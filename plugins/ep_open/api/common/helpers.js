@@ -81,9 +81,7 @@ exports.checkAuth = (request, response, next) => {
 	request.token && request.token.id ? next() : exports.responseError(response, 'Access allowed only for authorized users', 401);
 };
 
-exports.collectData = (request, config) => {
-	const data = {};
-
+exports.collectData = (request, config, data = {}) => {
 	if (config.owner) {
 		data.ownerId = request.token && request.token.user && request.token.user.id;
 	}

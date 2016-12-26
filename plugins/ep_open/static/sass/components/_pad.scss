@@ -253,7 +253,8 @@
 	display: block;
 }
 
-.pad__modal--privacy {
+.pad__modal--privacy,
+.pad__modal--edits {
 	max-width: 320px;
 }
 
@@ -523,14 +524,13 @@
 	font-size: 14px;
 }
 
-.pad__mode {
+.pad__message {
 	position: absolute;
 	bottom: 0;
 	left: 50%;
 	z-index: 3;
-	height: 28px;
-	font: 14px/28px $mainFont;
-	padding: 0 10px;
+	font: 14px/18px $mainFont;
+	padding: 10px;
 	border: 1px solid #ccc;
 	border-radius: 4px 4px 0 0;
 	background: #fff;

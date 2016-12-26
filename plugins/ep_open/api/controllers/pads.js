@@ -3,12 +3,16 @@
 const _ = require('lodash');
 const co = require('co');
 const padManager = require('ep_etherpad-lite/node/db/PadManager');
+const authorManager = require('ep_etherpad-lite/node/db/AuthorManager');
+const updatePadClients = require('ep_etherpad-lite/node/handler/PadMessageHandler').updatePadClients;
 const Changeset = require("ep_etherpad-lite/static/js/Changeset");
+const AttributePool = require("ep_etherpad-lite/static/js/AttributePool");
 const logger = require('ep_etherpad-lite/node_modules/log4js').getLogger('Pads API');
 const helpers = require('../common/helpers');
 const socketio = require('../common/socketio');
 const access = require('../common/access');
 const getAllowedOperations = access.getAllowedOperations;
+const checkPermissions = access.checkPermissions;
 const checkPermissionsMW = access.checkPermissionsMW;
 const async = helpers.async;
 const responseError = helpers.responseError;
@@ -16,9 +20,11 @@ const collectData = helpers.collectData;
 const randomString = helpers.randomString;
 const promiseWrapper = helpers.promiseWrapper;
 const uploadImage = helpers.uploadImage;
+const checkAuth = helpers.checkAuth;
 const User = require('../models/user');
 const Pad = require('../models/pad');
 const Permission = require('../models/permission');
+const Edit = require('../models/edit');
 const rootHierarchy = {
 	object: {},
 	store: {}
@@ -29,30 +35,36 @@ co.wrap(buildRootHierarchy)();
 
 module.exports = api => {
 	api.get('/pads', async(function*(request) {
-		const page = (parseInt(request.query.page, 10) || 1) - 1;
-		const perPage = parseInt(request.query.perPage, 10) || 50;
-		const where = {};
+		if (request.query.ids) {
+			return yield Pad.scope('complete').findAll({
+				where: {
+					id: { $in: request.query.ids.split(',') }
+				}
+			});
+		} else {
+			const page = (parseInt(request.query.page, 10) || 1) - 1;
+			const perPage = parseInt(request.query.perPage, 10) || 50;
+			const where = {};
 
-		if (request.query.query) {
-			where.title = { $iLike: `%${request.query.query}%` };
-		} else if (request.query.ids) {
-			where.id = { $in: request.query.ids.split(',') };
+			if (request.query.query) {
+				where.title = { $iLike: `%${request.query.query}%` };
+			}
+
+			return yield Pad.findAndCountAll({
+				limit: perPage,
+				offset: page * perPage,
+				where: where,
+				order: [['created_at']]
+			});
 		}
-
-		return yield Pad.findAndCountAll({
-			limit: perPage,
-			offset: page * perPage,
-			where: where,
-			order: [['created_at']]
-		});
 	}));
 
 	api.get('/pads/:id', async(function*(request, response) {
-		let pad = yield Pad.scope('withPermissions').findById(request.params.id);
+		let pad = yield Pad.scope('complete').findById(request.params.id);
 
 		if (!pad) {
 			if (request.params.id === 'root') {
-				pad = yield Pad.scope('withPermissions').create({
+				pad = yield Pad.scope('complete').create({
 					id: 'root',
 					type: 'root',
 					title: 'Open companies',
@@ -98,7 +110,7 @@ module.exports = api => {
 		}];
 
 		yield promiseWrapper(padManager, 'getPad', [data.id]);
-		const pad = yield Pad.scope('full').create(data, {
+		const pad = yield Pad.scope('withPermissions').create(data, {
 			include: [Permission]
 		});
 
@@ -111,7 +123,7 @@ module.exports = api => {
 	}));
 
 	api.put('/pads/:id', checkPermissionsMW('write'), async(function*(request, response) {
-		const pad = yield Pad.scope('full').findById(request.params.id);
+		const pad = yield Pad.findById(request.params.id);
 		const padTitle = pad.title;
 
 		if (!pad) {
@@ -135,7 +147,7 @@ module.exports = api => {
 	}));
 
 	api.delete('/pads/:id', checkPermissionsMW('manage'), async(function*(request, response) {
-		const pad = yield Pad.scope('full').findById(request.params.id);
+		const pad = yield Pad.findById(request.params.id);
 
 		if (!pad) {
 			return responseError(response, 'Pad is not found');
@@ -183,7 +195,7 @@ module.exports = api => {
 		request.checkBody('permissions', 'Permission is required').notEmpty();
 		request.checkErrors();
 
-		const pad = yield Pad.scope('withPermissions').findById(request.params.id);
+		const pad = yield Pad.findById(request.params.id);
 		const permissions = request.body.permissions;
 		const results = [];
 
@@ -233,6 +245,143 @@ module.exports = api => {
 
 		return results;
 	}));
+
+	api.get('/pads/:id/edits', async(function*(request) {
+		const padId = request.params.id;
+		const edits = yield Edit.findAll({
+			where: {
+				padId,
+				status: request.query.state || 'pending'
+			}
+		});
+		const extendedEdits = [];
+
+		for (var i = 0; i < edits.length; i++) {
+			extendedEdits.push(yield co.wrap(extendEdit)(edits[i]));
+		}
+
+		return extendedEdits;
+	}));
+
+	api.post('/pads/:id/edits', checkAuth, async(function*(request, response) {
+		request.checkBody('changes', 'Changes is required').notEmpty();
+		request.checkErrors();
+
+		const pad = yield Pad.findById(request.params.id);
+
+		if (!pad) {
+			return responseError(response, 'Pad is not found');
+		}
+
+		const edit = yield Edit.create(collectData(request, {
+			owner: true,
+			body: ['message', 'changes']
+		}, {
+			padId: request.params.id
+		}));
+
+		yield edit.reload({
+			include: [{
+				model: User,
+				as: 'owner'
+			}]
+		});
+
+		return yield co.wrap(extendEdit)(edit);
+	}));
+
+	api.put('/pads/:id/edits/:editId', checkAuth, async(function*(request, response) {
+		const edit = yield Edit.findById(request.params.editId);
+
+		if (!edit) {
+			return responseError(response, 'Edit is not found');
+		}
+
+		const data = collectData(request, {
+			owner: true,
+			body: ['message', 'changes']
+		});
+		const canWrite = yield checkPermissions(request.params.id, 'write', null, request.token);
+		const userId = request.token && request.token.user && request.token.user.id;
+
+		if (userId !== edit.ownerId && !canWrite) {
+			return responseError(response, 'You don\'t have permissions for this action', 401);
+		}
+
+		yield edit.update(data);
+
+		return yield co.wrap(extendEdit)(edit);
+	}));
+
+	api.post('/pads/:id/edits/:editId/approve', checkPermissionsMW('write'), async(function*(request, response) {
+		request.checkBody('changes', 'Approving changes is required').notEmpty();
+		request.checkErrors();
+
+		const edit = yield Edit.findById(request.params.editId);
+
+		if (!edit) {
+			return responseError(response, 'Edit is not found');
+		}
+
+		const changes = request.body.changes;
+		const pad = yield promiseWrapper(padManager, 'getPad', [edit.padId]);
+		const wireApool = (new AttributePool()).fromJsonable(changes.apool);
+		let changeset = changes.changeset;
+
+		try {
+			// Verify that the changeset has valid syntax and is in canonical form
+			Changeset.checkRep(changeset);
+
+			// Verify that the attribute indexes used in the changeset are all
+			// defined in the accompanying attribute pool.
+			Changeset.eachAttribNumber(changeset, function(n) {
+				if (!wireApool.getAttrib(n)) {
+					throw new Error("Attribute pool is missing attribute " + n + " for changeset " + changeset);
+				}
+			});
+
+			changeset = Changeset.moveOpsToNewPool(changeset, wireApool, pad.pool);
+
+			const prevText = pad.text();
+
+			if (Changeset.oldLen(changeset) != prevText.length) {
+				throw new Error("Can't apply USER_CHANGES " + changeset + " with oldLen " + Changeset.oldLen(changeset) + " to document of length " + prevText.length)
+			}
+
+			pad.appendRevision(changeset, changes.author);
+		} catch (e) {
+			return responseError(response, 'Bad changeset: ' + e);
+		}
+
+		// Make sure the pad always ends with an empty line.
+		if (pad.text().lastIndexOf('\n') != pad.text().length - 1) {
+			pad.appendRevision(Changeset.makeSplice(pad.text(), pad.text().length - 1, 0, '\n'));
+		}
+
+		updatePadClients(pad);
+
+		yield Permission.create({
+			padId: edit.padId,
+			role: `user/${edit.owner.id}`,
+			operation: 'write'
+		});
+
+		return yield edit.update({
+			status: 'approved'
+		});
+	}));
+
+	api.post('/pads/:id/edits/:editId/reject', checkPermissionsMW('write'), async(function*(request, response) {
+		const edit = yield Edit.findById(request.params.editId);
+
+		if (!edit) {
+			return responseError(response, 'Edit is not found');
+		}
+
+		return yield edit.update({
+			status: 'rejected'
+		});
+	}));
 };
 
 module.exports.padUpdate = function(hookName, args) {
@@ -247,6 +396,24 @@ module.exports.padUpdate = function(hookName, args) {
 			co.wrap(buildRootHierarchy)();
 		}
 	}
+};
+
+/**
+ * Extends suggesting edits data with additional information needed for merge with actual version of pad
+ * @param {Object} editModel - Instance of Edit model
+ * @return {Object} - Extended data object
+ */
+function* extendEdit(editModel) {
+	const edit = editModel.toJSON();
+	const pad = yield promiseWrapper(padManager, 'getPad', [edit.padId]);
+	const baseRev = edit.changes.baseRev;
+	const baseAtext = baseRev ? yield promiseWrapper(pad, 'getInternalRevisionAText', [baseRev]) : pad.atext.text;
+
+	edit.baseText = baseAtext.text;
+	edit.text = Changeset.applyToAText(edit.changes.changeset, baseAtext, pad.apool()).text;
+	edit.author = yield promiseWrapper(authorManager, 'getAuthor', [edit.changes.author]);
+
+	return edit;
 };
 
 /**
@@ -336,7 +503,7 @@ function* buildHierarchy(id, store, depth) {
 		return store[id];
 	}
 
-	const pad = yield Pad.scope('full').findById(id);
+	const pad = yield Pad.findById(id);
 
 	if (!pad) {
 		return {};

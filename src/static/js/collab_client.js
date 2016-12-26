@@ -79,6 +79,8 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
     onConnectionTrouble: function()
     {},
     onServerMessage: function()
+    {},
+    onUnsavedChanges: function()
     {}
   };
   if (browser.firefox)
@@ -184,17 +186,28 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
     var userChangesData = editor.prepareUserChangeset();
     if (userChangesData.changeset)
     {
-      lastCommitTime = t;
-      state = "COMMITTING";
-      stateMessage = {
-        type: "USER_CHANGES",
-        baseRev: rev,
-        changeset: userChangesData.changeset,
-        apool: userChangesData.apool
-      };
-      sendMessage(stateMessage);
-      sentMessage = true;
-      callbacks.onInternalAction("commitPerformed");
+      const canWrite = pad.isOperationAllowed && pad.isOperationAllowed('write');
+
+      if (canWrite) {
+        lastCommitTime = t;
+        state = "COMMITTING";
+        stateMessage = {
+          type: "USER_CHANGES",
+          baseRev: rev,
+          changeset: userChangesData.changeset,
+          apool: userChangesData.apool
+        };
+        sendMessage(stateMessage);
+        sentMessage = true;
+        callbacks.onInternalAction("commitPerformed");
+      } else {
+        callbacks.onUnsavedChanges(Object.assign({}, userChangesData, {
+          author: pad.getUserId(),
+          baseRev: rev
+        }));
+      }
+    } else {
+      callbacks.onUnsavedChanges(null);
     }
 
     if (sentMessage)
@@ -481,6 +494,10 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
       var data = hadata[author];
       if (!userSet[author])
       {
+        if (!clientVars.collab_client_vars.historicalAuthorData[author]) {
+          clientVars.collab_client_vars.historicalAuthorData[author] = data;
+        }
+
         tellAceAuthorInfo(author, data.colorId, true);
       }
     }
@@ -647,8 +664,12 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
     {
       callbacks.onServerMessage = cb;
     },
+    setOnUnsavedChanges: function(cb) {
+      callbacks.onUnsavedChanges = cb;
+    },
     updateUserInfo: defer(updateUserInfo),
     handleMessageFromServer: handleMessageFromServer,
+    handleUserChanges: handleUserChanges,
     getConnectedUsers: getConnectedUsers,
     sendClientMessage: sendClientMessage,
     sendMessage: sendMessage,

@@ -1,3 +1,4 @@
+var _ = require('ep_etherpad-lite/static/js/underscore');
 var $sidedivinner;
 var init;
 var firstLineInitCount = 0;
@@ -87,7 +88,7 @@ exports.acePostWriteDomLineHTML = function(hook_name, args, cb) {
 				// block interface.
 				setTimeout(function() {
 					updateDomline($node, nodeIndex, true);
-				}, Math.floor(nodeIndex/200) * 1000);
+				}, Math.floor(nodeIndex / 200) * 1000);
 
 				setTimeout(function() {
 					firstLineInitCount = 3;
@@ -118,6 +119,22 @@ exports.aceEditEvent = function(hook_name, context, cb) {
 
 	return x$;
 };
+
+exports.aceInitialized = function(hook, context) {
+	var editorInfo = context.editorInfo;
+
+	editorInfo.ace_updateAuthorHighliting = _(function() {
+		$(editorInfo.ace_getDocument().body)
+			.children()
+			.each(function(index, line) {
+				var nodeIndex = index + 1;
+
+				setTimeout(function() {
+					updateDomline($(line), nodeIndex, true);
+				}, Math.floor(nodeIndex / 200) * 1000);
+			});
+	}).bind(context);
+}
 
 function allClasses($node) {
 	var ref = $node.attr('class');

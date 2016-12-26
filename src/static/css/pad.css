@@ -523,7 +523,7 @@ table#otheruserstable {
 }
 
 .toolbar #overlay {
-  z-index: 500;
+  z-index: 10;
   display: none;
   background-repeat: repeat-both;
   width: 100%;
@@ -531,7 +531,18 @@ table#otheruserstable {
   height: inherit;
   left: 0;
   top: 0;
+  padding-top: 4px;
 }
+
+.disabledtoolbar #overlay {
+  display: block;
+}
+
+.disabledtoolbar .menu_right {
+  z-index: 11;
+}
+
+
 * html #overlay {
   /* for IE 6+ */
   -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";

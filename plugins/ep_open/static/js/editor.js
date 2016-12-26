@@ -1,27 +1,42 @@
 window.$(document).ready(function () {
 	var pm = window.top.pm;
+	var btns = [{
+		id: 'pad_privacy_settings',
+		toggleMessageName: 'togglePrivacyModal',
+		stateMessageName: 'togglePrivacyBtnState',
+		requestStateMessageName: 'requestPrivacyBtnState'
+	}, {
+		id: 'suggested_edits',
+		toggleMessageName: 'toggleEditsModal',
+		stateMessageName: 'toggleEditsBtnState',
+		requestStateMessageName: 'requestEditsBtnState'
+	}];
 
 	if (pm) {
-		var $privacySettingsBtn = window.$('#pad_privacy_settings');
 		var urlRegExp = /^\/pads\/([^\/]*)(.*)$/;
 		var pathname = window.top.location.pathname;
+		var activePadId = urlRegExp.test(pathname) ? pathname.replace(urlRegExp, '$1') : 'root';
 		var padId = window.location.pathname.replace(/^\/p\/([^\/]*)(.*)$/, '$1');
 
-		$privacySettingsBtn.click(function() {
-			window.padeditbar.toggleDropDown('none');
-			pm.send('togglePrivacyModal');
-		});
+		btns.forEach(function(btn) {
+			var $btn = window.$('#' + btn.id);
 
-		$privacySettingsBtn = $privacySettingsBtn.add($privacySettingsBtn.next());
+			$btn.click(function() {
+				window.padeditbar.toggleDropDown('none');
+				pm.send(btn.toggleMessageName);
+			});
 
-		pm.subscribe('togglePrivacyBtnState', function(data) {
-			if (data.padId === padId) {
-				$privacySettingsBtn[data.isActive ? 'show' : 'hide']()
+			$btn = $btn.add($btn.next());
+
+			pm.subscribe(btn.stateMessageName, function(data) {
+				if (data.padId === padId) {
+					$btn[data.isActive ? 'show' : 'hide']()
+				}
+			});
+
+			if (padId === activePadId) {
+				pm.send(btn.requestStateMessageName);
 			}
 		});
-
-		if (urlRegExp.test(pathname) && pathname.replace(urlRegExp, '$1') === padId) {
-			pm.send('requestPrivacyBtnState');
-		}
 	}
 });

@@ -9,7 +9,9 @@
 			"eejsBlock_scripts": "ep_open/hooks.js"
 		},
 		"client_hooks": {
-			"aceEditEvent": "ep_open/static/js/hooks"
+			"aceEditEvent": "ep_open/static/js/hooks",
+			"postAceInit": "ep_open/static/js/hooks",
+			"postToolbarInit": "ep_open/static/js/hooks"
 		}
 	}]
 }

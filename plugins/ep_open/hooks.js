@@ -87,10 +87,14 @@ exports.expressCreateServer = function(hookName, args) {
 };
 
 exports.eejsBlock_editbarMenuRight = function (hookName, context, cb) {
-	const button = '<li id="pad_privacy_settings"><a title="Privacy settings"><span class="buttonicon buttonicon-lock"></span></a></li><li class="separator"></li>';
+	const buttons = [
+		'<li id="pad_privacy_settings"><a title="Privacy settings"><span class="buttonicon buttonicon-lock"></span></a></li>',
+		'<li id="suggested_edits"><a title="Suggested edits"><i class="fa fa-pencil-square-o"></i></a></li>'
+	];
+	const string = buttons.concat('').join('<li class="separator"></li>');
 	const regExp = /^(.*?)<li([^<]*?)data-key="showusers">(.*?)<\/li>(.*?)$/m;
 
-	context.content = context.content.replace(/\n|\r/g, '').replace(regExp, '$1' + button + '<li$2data-key="showusers">$3</li>$4');
+	context.content = context.content.replace(/\n|\r/g, '').replace(regExp, '$1' + string + '<li$2data-key="showusers">$3</li>$4');
 
 	return cb();
 }

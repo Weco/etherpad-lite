@@ -110,7 +110,7 @@ const User = ModelBase('user', {
 		}
 	},
 	defaultScope: {
-		attributes: ['id', 'email', 'nickname', 'avatar', 'reputation', 'role']
+		attributes: ['id', 'email', 'nickname', 'avatar', 'reputation', 'role', 'name']
 	},
 	scopes: {
 		full: {}

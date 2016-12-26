@@ -998,6 +998,10 @@ function Ace2Inner(){
     }
   };
 
+  editorInfo.ace_getBaseText = function()
+  {
+    return changesetTracker.getBaseText();
+  };
   editorInfo.ace_setBaseText = function(txt)
   {
     changesetTracker.setBaseText(txt);
@@ -1010,6 +1014,10 @@ function Ace2Inner(){
   editorInfo.ace_applyChangesToBase = function(c, optAuthor, apoolJsonObj)
   {
     changesetTracker.applyChangesToBase(c, optAuthor, apoolJsonObj);
+  };
+  editorInfo.ace_revertChangesFromBase = function(changes)
+  {
+    changesetTracker.revertChangesFromBase(changes);
   };
   editorInfo.ace_prepareUserChangeset = function()
   {

@@ -1,5 +1,8 @@
 import { uniqBy, intersection } from 'lodash';
 import moment from 'moment';
+import * as JsDiff from 'diff';
+import { merge, calcLineCount } from 'diff/lib/patch/merge';
+import { builder } from '../../../../../src/static/js/Changeset';
 import tree from '../store';
 
 export function niceDate(date) {
@@ -75,4 +78,56 @@ export function formatPermissions(permissions) {
 
 export function isOperationAllowed(operation, pad) {
 	return getAllowedOperations(pad || tree.get('currentPad')).indexOf(operation) !== -1;
+}
+
+export function mergedChanges(mine, theirs, base, author) {
+	const patch = {
+		hunks: merge(mine, theirs, base).hunks.map(hunk => {
+			// Resolve conflicts using mine
+			if (hunk.conflict) {
+				const lines = [];
+
+				hunk.lines.forEach(line => {
+					if (typeof line === 'string') {
+						lines.push(line);
+					} else if (line.conflict) {
+						lines.push.apply(lines, line.mine);//.concat(line.theirs.slice(line.mine.length)));
+					}
+				});
+
+				hunk.lines = lines;
+				calcLineCount(hunk);
+			}
+
+			hunk.linedelimiters = hunk.lines.map(() => '\n');
+
+			return hunk;
+		})
+	};
+	const mergedText = JsDiff.applyPatch(base, patch)
+	const mergedTextDiff = JsDiff.diffChars(theirs, mergedText || mine);
+	const changesetBuilder = builder(theirs.length);
+	const apool = author ? {
+		"nextNum": 1,
+		"numToAttrib": {
+			"0": ["author", author]
+		}
+	} : {};
+	const attrs = author ? '*0' : '';
+
+	mergedTextDiff.forEach(diff => {
+		if (diff.added) {
+			changesetBuilder.insert(diff.value, attrs, apool);
+		} else if (diff.removed) {
+			changesetBuilder.remove(diff.value.length, diff.value.split('\n').length - 1);
+		} else {
+			changesetBuilder.keepText(diff.value);
+		}
+	});
+
+	return {
+		changeset: changesetBuilder.toString(),
+		author,
+		apool
+	}
 }
