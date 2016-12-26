@@ -763,7 +763,7 @@ table#otheruserstable {
   width: 16px;
   height: 16px;
   display: inline-block;
-  vertical-align: middle;
+  vertical-align: vertical;
   border: none;
   padding: 0;
   background: none;
