@@ -840,6 +840,19 @@ table#otheruserstable {
 .buttonicon-lock:before {
   content: "\e83a";
 }
+#tbl_menu_list .tbl-icon {
+  position: relative;
+  background: none!important;
+}
+#tbl_menu_list .tbl-icon:after {
+  content: 'Table';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  line-height: 19px;
+}
 #focusprotector {
   z-index: 100;
   position: absolute;
