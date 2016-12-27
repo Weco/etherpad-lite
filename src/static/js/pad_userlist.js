@@ -470,7 +470,7 @@ var paduserlist = (function()
         isAuthorized: !!(localStorage.token || sessionStorage.token)
       }, myInitialUserInfo));
 
-      top.pm && top.pm.subscribe('currentUserUpdate', function(data) {
+      top.pm && top.pm.subscribe('currentUserUpdate.etherpad', function(data) {
         self.setMyUserInfo({
           isAuthorized: data.isAuthorized,
           name: data.name || myUserInfo.name

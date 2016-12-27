@@ -61,18 +61,11 @@ module.exports = api => {
 
 		if (!user) {
 			const existedUser = yield User.find({
-				$or: [
-					{ email: userData.email },
-					{ nickname: userData.nickname }
-				]
+				where: { email: userData.email }
 			});
 
-			if (existedUser) {
-				if (existedUser.email === userData.email) {
-					return response.send(`Email ${userData.email} is already in use, please login through regular login`);
-				} else {
-					userData.nickname += '_' + provider;
-				}
+			if (existedUser && existedUser.email === userData.email) {
+				return response.send(`Email ${userData.email} is already in use, please login through regular login`);
 			}
 
 			user = yield User.create(userData);
@@ -129,7 +122,6 @@ function getUserData(provider, accessToken) {
 		}).then(data => ({
 			email: data.email,
 			name: data.name,
-			nickname: data.login,
 			avatar: data.avatar_url,
 			github: data,
 			githubUserId: data.id,
@@ -142,7 +134,6 @@ function getUserData(provider, accessToken) {
 		}).then(data => ({
 			email: data.email,
 			name: data.name,
-			nickname: data.name.toLowerCase().replace(/\s/g, '_'),
 			avatar: data.picture,
 			google: data,
 			googleUserId: data.id,

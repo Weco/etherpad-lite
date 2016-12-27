@@ -20,17 +20,18 @@ module.exports = api => {
 	}));
 
 	api.put('/profile', checkAuth, async(function*(request, response) {
-		const user = request.token.user;
+		let user = request.token.user;
 
 		if (!user) {
 			return responseError(response, 'User is not found');
 		}
 
+		yield checkUserUniq(request.body);
+		user = yield user.update(request.body)
+
 		request.cookies.token && updateAuthorName(request.cookies.token, user);
 
-		yield checkUserUniq(request.body);
-
-		return yield user.update(request.body);
+		return user;
 	}));
 
 	api.post('/profile/avatar', checkAuth, async(function*(request, response) {

@@ -48,7 +48,7 @@ export function setToken(tree, token, remember = !!window.localStorage.token) {
 	tree.set('token', token);
 	messages.send('currentUserUpdate', {
 		isAuthorized: !!token,
-		name: user && user.nickname
+		name: user && user.name
 	});
 }
 
@@ -64,10 +64,10 @@ export function updateProfile(tree, data) {
 		data
 	})
 	.then(user => {
-		tree.set('currentUser', user)
+		tree.set('currentUser', user);
 		messages.send('currentUserUpdate', {
 			isAuthorized: true,
-			name: user && user.nickname
+			name: user && user.name
 		});
 	})
 	.catch(errorHandler(tree));

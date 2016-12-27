@@ -28,7 +28,7 @@ class Header extends Component {
 								</Link>
 							) : ''}
 							<Link to='/profile' className='header__link'>
-								{this.props.user.nickname}
+								{this.props.user.name}
 							</Link>
 							<a className='header__link' onClick={this.props.actions.logout}>
 								logout
