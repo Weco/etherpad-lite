@@ -44,7 +44,7 @@ export default class Profile extends Base {
 		event.preventDefault();
 		const data = {};
 
-		['email', 'nickname'].forEach(key => data[key] = this.state.user[key]);
+		['email', 'name'].forEach(key => data[key] = this.state.user[key]);
 		this.props.actions.updateProfile(data);
 	}
 
@@ -125,9 +125,9 @@ export default class Profile extends Base {
 					</div>
 				</div>
 				<div className='form__row'>
-					<div className='form__row__title'>Nickname</div>
+					<div className='form__row__title'>Name</div>
 					<div className='form__row__field'>
-						<input className='input' type='text' ref='nickname' valueLink={this.linkState('user.nickname')} />
+						<input className='input' type='text' ref='name' valueLink={this.linkState('user.name')} />
 					</div>
 				</div>
 				<button className='btn form__btn' type='submit'>Save</button>

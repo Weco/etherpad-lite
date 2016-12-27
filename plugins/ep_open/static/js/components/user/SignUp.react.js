@@ -28,7 +28,7 @@ export default class SignUp extends Base {
 
 		this.props.actions.register({
 			email: this.refs.email.value,
-			nickname: this.refs.nickname.value,
+			name: this.refs.name.value,
 			password: this.refs.password.value
 		});
 	}
@@ -44,9 +44,9 @@ export default class SignUp extends Base {
 					</div>
 				</div>
 				<div className='form__row'>
-					<div className='form__row__title'>Nickname</div>
+					<div className='form__row__title'>Name</div>
 					<div className='form__row__field'>
-						<input className='input' type='text' ref='nickname' />
+						<input className='input' type='text' ref='name' />
 					</div>
 				</div>
 				<div className='form__row'>

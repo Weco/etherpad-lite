@@ -9,24 +9,18 @@ const User = require('../models/user');
 
 function checkUniq(data) {
 	return User.find({
-		where: {
-			$or: [{
-				email: data.email
-			}, {
-				nickname: data.nickname
-			}]
-		}
+		where: { email: data.email }
 	}).then(user => {
 		if (user) {
 			user = user.length ? user[0] : user;
 
-			return new Error(`${user.email === data.email ? 'Email' : 'Nickname'} is already taken`)
+			return new Error('Email is already taken');
 		}
 	})
 }
 
 function updateAuthorName(token, user) {
-	authorManager.getAuthor4Token(token, (error, author) => authorManager.setAuthorName(author, user.nickname));
+	authorManager.getAuthor4Token(token, (error, author) => authorManager.setAuthorName(author, user.name));
 }
 
 module.exports = api => {
@@ -59,12 +53,12 @@ module.exports = api => {
 
 	api.post('/users', async(function*(request) {
 		request.checkBody('email', 'Email is required').notEmpty();
-		request.checkBody('nickname', 'Nickname is required').notEmpty();
+		request.checkBody('name', 'Name is required').notEmpty();
 		request.checkBody('password', 'Password is required').notEmpty();
 		request.checkErrors();
 
 		const data = collectData(request, {
-			body: ['email', 'nickname', 'password']
+			body: ['email', 'name', 'password']
 		});
 
 		yield checkUniq(data);
@@ -86,7 +80,7 @@ module.exports = api => {
 		request.cookies.token && updateAuthorName(request.cookies.token, user);
 
 		const data = collectData(request, {
-			body: ['email', 'nickname', 'password']
+			body: ['email', 'name', 'password']
 		});
 
 		yield checkUniq(data);

@@ -15,10 +15,6 @@ const User = ModelBase('user', {
 		type: Sequelize.STRING,
 		unique: true
 	},
-	nickname: {
-		type: Sequelize.STRING,
-		unique: true
-	},
 	role: {
 		type: Sequelize.STRING,
 		defaultValue: 'user'
@@ -110,7 +106,7 @@ const User = ModelBase('user', {
 		}
 	},
 	defaultScope: {
-		attributes: ['id', 'email', 'nickname', 'avatar', 'reputation', 'role', 'name']
+		attributes: ['id', 'email', 'name', 'avatar', 'reputation', 'role']
 	},
 	scopes: {
 		full: {}

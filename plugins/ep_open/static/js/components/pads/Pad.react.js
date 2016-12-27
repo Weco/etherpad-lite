@@ -191,7 +191,9 @@ export default class Pad extends Base {
 		const iframeEl = iframe && iframe.querySelector('.pad__iframe__el');
 		const editbar = iframeEl && iframeEl.contentDocument.getElementById('editbar');
 
-		this.refs.contentInner.style.top = editbar ? (editbar.offsetHeight + 'px') : null;
+		if (this.refs.contentInner) {
+			this.refs.contentInner.style.top = editbar ? (editbar.offsetHeight + 'px') : null;
+		}
 	}
 
 	getOffsetFromEvent(event) {
@@ -447,6 +449,7 @@ export default class Pad extends Base {
 
 	componentWillUnmount() {
 		this.subscriptions.forEach(subscription => subscription && subscription());
+		messages.unsubscribe('.etherpad');
 		this.props.actions.removeLayoutMode('pad_hierarchy');
 		window.removeEventListener('resize', this.updateEditbarOffset);
 	}
