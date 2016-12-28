@@ -20,6 +20,7 @@ const User = ModelBase('user', {
 		defaultValue: 'user'
 	},
 	name: Sequelize.STRING,
+	authorId: Sequelize.STRING,
 	password: {
 		type: Sequelize.VIRTUAL,
 		set: function(value) {
@@ -106,7 +107,7 @@ const User = ModelBase('user', {
 		}
 	},
 	defaultScope: {
-		attributes: ['id', 'email', 'name', 'avatar', 'reputation', 'role']
+		attributes: ['id', 'email', 'name', 'avatar', 'reputation', 'role', 'authorId']
 	},
 	scopes: {
 		full: {}

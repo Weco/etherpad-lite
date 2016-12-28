@@ -94,7 +94,7 @@ function Ace2Editor()
   var aceFunctionsPendingInit = ['importText', 'importAText', 'focus',
   'setEditable', 'getFormattedCode', 'setOnKeyPress', 'setOnKeyDown',
   'setNotifyDirty', 'setProperty', 'setBaseText', 'setBaseAttributedText',
-  'applyChangesToBase', 'applyPreparedChangesetToBase', 'revertChangesFromBase',
+  'applyChangesToBase', 'applyPreparedChangesetToBase', 'revertChangesFromBase', 'revertToBase',
   'setUserChangeNotificationCallback', 'setAuthorInfo',
   'setAuthorSelectionRange', 'callWithAce', 'execCommand', 'replaceRange'];
 

@@ -471,11 +471,13 @@ var paduserlist = (function()
       }, myInitialUserInfo));
 
       top.pm && top.pm.subscribe('currentUserUpdate.etherpad', function(data) {
-        self.setMyUserInfo({
-          isAuthorized: data.isAuthorized,
-          name: data.name || myUserInfo.name
-        });
-        data.name && pad.notifyChangeName(data.name);
+        if (!data.authorId || data.authorId === myUserInfo.userId) {
+          self.setMyUserInfo({
+            isAuthorized: data.isAuthorized,
+            name: data.name || myUserInfo.name
+          });
+          data.name && pad.notifyChangeName(data.name);
+        }
       });
 
       if($('#online_count').length === 0) $('#editbar [data-key=showusers] > a').append('<span id="online_count">1</span>');

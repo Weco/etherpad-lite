@@ -81,6 +81,8 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
     onServerMessage: function()
     {},
     onUnsavedChanges: function()
+    {},
+    onUserChange: function()
     {}
   };
   if (browser.firefox)
@@ -377,6 +379,20 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
       }
       tellAceActiveAuthorInfo(userInfo);
     }
+    else if (msg.type == "USER_UPDATE")
+    {
+      var userInfo = msg.userInfo;
+
+      callbacks.onUserChange(userInfo);
+      tellAceActiveAuthorInfo(userInfo);
+      editor.setProperty('userauthor', userInfo.userId);
+      editor.callWithAce(function(ace) {
+        ace.ace_updateAuthorHighliting();
+      });
+      // Revert unsaved changes of previous author and update state
+      editor.revertToBase();
+      handleUserChanges();
+    }
     else if (msg.type == "USER_LEAVE")
     {
       var userInfo = msg.userInfo;
@@ -666,6 +682,9 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options, _pad)
     },
     setOnUnsavedChanges: function(cb) {
       callbacks.onUnsavedChanges = cb;
+    },
+    setOnUserChange: function(cb) {
+      callbacks.onUserChange = cb;
     },
     updateUserInfo: defer(updateUserInfo),
     handleMessageFromServer: handleMessageFromServer,
