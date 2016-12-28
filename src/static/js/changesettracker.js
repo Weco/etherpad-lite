@@ -240,12 +240,15 @@ function makeChangesetTracker(scheduler, apool, aceCallbacksProvider)
       };
       return data;
     },
-    revertChangesFromBase: function(changese) {
+    revertChangesFromBase: function(changes) {
       const lines = Changeset.splitTextLines(baseAText.text);
       const alines = Changeset.splitAttributionLines(baseAText.attribs, baseAText.text);
-      const inverseChangeset = Changeset.inverse(changese.changeset, lines, alines, apool);
+      const inverseChangeset = Changeset.inverse(changes.changeset, lines, alines, apool);
 
       self.applyChangesToBase(inverseChangeset, '', apool);
+    },
+    revertToBase: function() {
+      self.setBaseAttributedText(baseAText);
     },
     applyPreparedChangesetToBase: function()
     {

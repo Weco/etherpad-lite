@@ -207,6 +207,10 @@ function sendClientReady(isReconnect, messageType)
     "protocolVersion": 2
   };
 
+  if (pad) {
+      pad.token = token;
+  }
+
   //this is a reconnect, lets tell the server our revisionnumber
   if(isReconnect == true)
   {
@@ -555,6 +559,7 @@ var pad = {
     }, pad);
     pad.collabClient.setOnUserJoin(pad.handleUserJoin);
     pad.collabClient.setOnUpdateUserInfo(pad.handleUserUpdate);
+    pad.collabClient.setOnUserChange(pad.handleUserChange);
     pad.collabClient.setOnUserLeave(pad.handleUserLeave);
     pad.collabClient.setOnClientMessage(pad.handleClientMessage);
     pad.collabClient.setOnServerMessage(pad.handleServerMessage);
@@ -647,6 +652,22 @@ var pad = {
     options.view[key] = value;
     pad.handleOptionsChange(options);
   },
+  updateToken() {
+    var token = readCookie("token");
+
+    if (token == null) {
+      token = "t." + randomString();
+      createCookie("token", token, 60);
+    }
+
+    if (token !== pad.token) {
+      pad.token = token;
+      pad.collabClient.sendMessage({
+        type: 'TOKEN_UPDATE',
+        token: token
+      });
+    }
+  },
   handleOptionsChange: function(opts)
   {
     // opts object is a full set of options or just
@@ -695,6 +716,13 @@ var pad = {
   handleUserUpdate: function(userInfo)
   {
     paduserlist.userJoinOrUpdate(userInfo);
+  },
+  handleUserChange: function(userInfo)
+  {
+    paduserlist.setMyUserInfo(userInfo);
+    pad.myUserInfo.userId = userInfo.userId;
+    pad.myUserInfo.name = userInfo.name;
+    pad.myUserInfo.colorId = userInfo.colorId;
   },
   handleUserLeave: function(userInfo)
   {

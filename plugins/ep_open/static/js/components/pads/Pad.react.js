@@ -21,7 +21,8 @@ import * as commonActions from '../../actions/common';
 		currentPad: ['currentPad'],
 		pads: ['pads'],
 		padsHistory: ['padsHistory'],
-		currentUser: ['currentUser']
+		currentUser: ['currentUser'],
+		token: ['token']
 	},
 	actions: Object.assign({}, padsActions, commonActions)
 })
@@ -68,6 +69,8 @@ export default class Pad extends Base {
 
 			if (padId === this.props.currentPad.id) {
 				this.updataToolbarState();
+				window.editor = data.editor;
+				window.pad = pad;
 			}
 
 			pad.isOperationAllowed = isOperationAllowed;
@@ -101,14 +104,11 @@ export default class Pad extends Base {
 		}
 
 		if (nextProps.currentUser !== this.props.currenUser) {
-			// If after authorization, user has write permissions and unsaved changes, save them
-			if (this.state.unsavedChanges && isOperationAllowed('write')) {
-				const { pad } = this.getCurrentEtherpad();
-
-				pad && pad.collabClient.handleUserChanges();
-			}
-
 			this.updataToolbarState();
+		}
+
+		if (nextProps.token !== this.props.token) {
+			this.updateEtherpadToken();
 		}
 
 		if (nextProps.currentPad.edits !== this.props.currentPad.edits && this.state.unsavedChanges) {
@@ -142,6 +142,12 @@ export default class Pad extends Base {
 		const { toolbar } = this.getCurrentEtherpad();
 
 		toolbar && toolbar[isOperationAllowed('write') ? 'enable' : 'disable']();
+	}
+
+	updateEtherpadToken() {
+		const { pad } = this.getCurrentEtherpad();
+
+		pad && pad.updateToken();
 	}
 
 	goToTab(id) {

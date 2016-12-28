@@ -239,6 +239,8 @@ exports.handleMessage = function(client, message)
         });
       } else if (message.data.type == "USERINFO_UPDATE") {
         handleUserInfoUpdate(client, message);
+    } else if (message.data.type == "TOKEN_UPDATE") {
+        handleTokenUpdate(client, message);
       } else if (message.data.type == "CHAT_MESSAGE") {
         handleChatMessage(client, message);
       } else if (message.data.type == "GET_CHAT_MESSAGES") {
@@ -600,6 +602,106 @@ function handleUserInfoUpdate(client, message)
 
   // Send the other clients the update message
   client.broadcast.json.send(infoMsg);
+}
+
+/**
+ * Handles a TOKEN_UPDATE, that means that a user has logged out or logged in using another account.
+ * @param client the client that send this message
+ * @param message the message from the client
+ */
+function handleTokenUpdate(client, message)
+{
+  const token = message.data.token;
+
+  //check if all ok
+  if(token == null)
+  {
+    messageLogger.warn("Dropped message, TOKEN_UPDATE Message has no token!");
+    return;
+  }
+
+  // Check that we have a valid session and author to update.
+  const session = sessioninfos[client.id];
+  const currentToken = session.auth.token;
+
+  if(!session || !session.author || !session.padId)
+  {
+    messageLogger.warn("Dropped message, TOKEN_UPDATE Session not ready." + message.data);
+    return;
+  }
+
+  if (currentToken === token) {
+    messageLogger.warn("Dropped message, TOKEN_UPDATE Token has not been changed." + message.data);
+    return;
+  }
+
+  authorManager.getAuthor4Token(token, function(err, authorId) {
+    ERR(err);
+
+    if (session.author === authorId) {
+      messageLogger.warn("Dropped message, TOKEN_UPDATE Token belongs to the same author." + message.data);
+      return;
+    }
+
+    authorManager.getAuthor(authorId, function(err, author) {
+      var previousAuthorId = session.author
+      var userInfo = {
+        userId: authorId,
+        name: author.name || null,
+        colorId: author.colorId,
+        userAgent: 'Anonymous',
+        ip: '127.0.0.1',
+      };
+      var userPadsIds = [];
+
+      Object.keys(socketio.sockets.sockets).forEach(id => {
+        const client = socketio.sockets.sockets[id];
+        const session = sessioninfos[id];
+
+        if (session.auth && session.auth.token === currentToken) {
+          session.auth.token = message.data.token;
+          session.author = authorId;
+          // Send message to client with updated information about new author
+          client.json.send({
+            type: 'COLLABROOM',
+            data: {
+              type: 'USER_UPDATE',
+              userInfo: userInfo
+            }
+          });
+          userPadsIds.push(session.padId);
+        }
+      });
+
+      // Send the other clients from user's pads the update messages. One about leaving of previous author and
+      // another about joining of the new one.
+      Object.keys(socketio.sockets.sockets).forEach(id => {
+        const client = socketio.sockets.sockets[id];
+        const session = sessioninfos[id];
+
+        if (session.auth && session.auth.token !== token && userPadsIds.indexOf(session.padId) !== -1) {
+          client.json.send({
+            type: 'COLLABROOM',
+            data: {
+              type: 'USER_LEAVE',
+              userInfo: {
+                userId: previousAuthorId,
+                userAgent: 'Anonymous',
+                'ip': '127.0.0.1'
+              }
+            }
+          });
+          client.json.send({
+            type: 'COLLABROOM',
+            data: {
+              type: 'USER_NEWINFO',
+              userInfo: userInfo
+            }
+          });
+        }
+      });
+    });
+  });
 }
 
 /**

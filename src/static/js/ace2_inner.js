@@ -1015,6 +1015,10 @@ function Ace2Inner(){
   {
     changesetTracker.applyChangesToBase(c, optAuthor, apoolJsonObj);
   };
+  editorInfo.ace_revertToBase = function()
+  {
+    changesetTracker.revertToBase();
+  };
   editorInfo.ace_revertChangesFromBase = function(changes)
   {
     changesetTracker.revertChangesFromBase(changes);

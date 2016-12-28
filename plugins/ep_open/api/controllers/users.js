@@ -16,7 +16,7 @@ function checkUniq(data) {
 
 			return new Error('Email is already taken');
 		}
-	})
+	});
 }
 
 function updateAuthorName(token, user) {

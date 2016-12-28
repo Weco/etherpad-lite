@@ -33,6 +33,11 @@ api.use((request, response, next) => {
 			.then(token => {
 				if (token && token.isActive()) {
 					request.token = token;
+
+					// Keep etherpad token in sync with API token
+					if (token.etherpadToken && request.cookies.token !== token.etherpadToken) {
+						response.cookie('token', token.etherpadToken, { maxAge: 1000 * 60 * 60 * 24 * 30 });
+					}
 				} else {
 					request.token = {};
 					Token.destroy({ where: { id: tokenId }});

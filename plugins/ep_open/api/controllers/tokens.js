@@ -1,9 +1,13 @@
 'use strict';
 
+const co = require('co');
 const moment = require('moment');
 const helpers = require('../common/helpers');
+const authorManager = require('ep_etherpad-lite/node/db/AuthorManager');
 const async = helpers.async;
 const responseError = helpers.responseError;
+const promiseWrapper = helpers.promiseWrapper;
+const randomString = helpers.randomString;
 const updateAuthorName = require('./users').updateAuthorName;
 const User = require('../models/user');
 const Token = require('../models/token');
@@ -24,7 +28,7 @@ module.exports = api => {
 			return responseError(response, 'Authentication fails');
 		}
 
-		const token = yield createToken(user, request.cookies.token);
+		const token = yield createToken(user, request, response);
 
 		return Object.assign(token.toJSON(), { user });
 	}));
@@ -49,23 +53,38 @@ module.exports = api => {
 			return responseError(response, 'Token is not found');
 		}
 
-		return yield token.destroy();
+		yield token.destroy();
+		response.cookie('token', '', { expires: new Date(0) });
+
+		return token;
 	}));
 };
 
-function createToken(user, etherpadToken) {
-	// Set name of authorized user to etherpad author entity
-	etherpadToken && updateAuthorName(etherpadToken, user);
+const createToken = co.wrap(function* (user, request, response) {
+	let etherpadToken = request.cookies.token;
 
-	return Token
-		.destroy({ where: { userId: user.id }})
-		.then(() =>
-			Token.create({
-				expires: moment().add(1, 'months'),
-				userId: user.id,
-				etherpadToken
-			})
-		);
-}
+	// Check if this user already has etherpad author, then create new etherpad token for this author and use it
+	if (user.authorId) {
+		etherpadToken = `t.${randomString(20)}`;
+		yield promiseWrapper(authorManager, 'setAuthor4Token', [etherpadToken, user.authorId]);
+		// Update etherpad token in cookies
+		response.cookie('token', etherpadToken, { maxAge: 1000 * 60 * 60 * 24 * 30 });
+	} else if (etherpadToken) {
+		// If this is no author and there is etherpad token, then get author of this token and use it
+		const authorId = yield promiseWrapper(authorManager, 'getAuthor4Token', [etherpadToken]);
+
+		yield user.update({ authorId });
+		// Set name of authorized user to etherpad author entity
+		updateAuthorName(etherpadToken, user);
+	}
+
+	yield Token.destroy({ where: { userId: user.id }})
+
+	return yield Token.create({
+		expires: moment().add(1, 'months'),
+		userId: user.id,
+		etherpadToken
+	});
+});
 
 module.exports.createToken = createToken;
