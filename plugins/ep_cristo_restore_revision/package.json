@@ -1,0 +1,97 @@
+{
+  "_args": [
+    [
+      {
+        "raw": "ep_cristo_restore_revision",
+        "scope": null,
+        "escapedName": "ep_cristo_restore_revision",
+        "name": "ep_cristo_restore_revision",
+        "rawSpec": "",
+        "spec": "latest",
+        "type": "tag"
+      },
+      "/Users/gaer/Documents/we/etherpad"
+    ]
+  ],
+  "_from": "ep_cristo_restore_revision@latest",
+  "_id": "ep_cristo_restore_revision@1.0.0",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/ep_cristo_restore_revision",
+  "_npmUser": {
+    "name": "cristo.rabani",
+    "email": "kristo.raban.i@gmail.com"
+  },
+  "_npmVersion": "1.4.14",
+  "_phantomChildren": {},
+  "_requested": {
+    "raw": "ep_cristo_restore_revision",
+    "scope": null,
+    "escapedName": "ep_cristo_restore_revision",
+    "name": "ep_cristo_restore_revision",
+    "rawSpec": "",
+    "spec": "latest",
+    "type": "tag"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "https://registry.npmjs.org/ep_cristo_restore_revision/-/ep_cristo_restore_revision-1.0.0.tgz",
+  "_shasum": "f7827b1b66f8be6f6551632ae210c7ab28eedeb3",
+  "_shrinkwrap": null,
+  "_spec": "ep_cristo_restore_revision",
+  "_where": "/Users/gaer/Documents/we/etherpad",
+  "author": {
+    "name": "Cristo",
+    "email": "cristo.rabani@gmail.com",
+    "url": "https://github.com/cristo-rabani"
+  },
+  "authors": [
+    {
+      "name": "cristo rabani",
+      "email": "cristo.rabani@gmail.com",
+      "url": "vazco.eu"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/cristo-rabani/ep_cristo_restore_revision/issues"
+  },
+  "description": "Adds option to restore revision in timeslider. Needed api 1.2.11 or patch",
+  "devDependencies": {},
+  "directories": {},
+  "dist": {
+    "shasum": "f7827b1b66f8be6f6551632ae210c7ab28eedeb3",
+    "tarball": "https://registry.npmjs.org/ep_cristo_restore_revision/-/ep_cristo_restore_revision-1.0.0.tgz"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "gitHead": "6b315d979fba1298c8a184dd97476299d7358df7",
+  "homepage": "https://github.com/cristo-rabani/ep_cristo_restore_revision",
+  "keywords": [
+    "restore",
+    "revision",
+    "etherpad",
+    "cristo",
+    "rabani"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "maintainers": [
+    {
+      "name": "cristo.rabani",
+      "email": "kristo.raban.i@gmail.com"
+    }
+  ],
+  "name": "ep_cristo_restore_revision",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cristo-rabani/ep_cristo_restore_revision.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}
