@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const co = require('co');
+const moment = require('moment');
 const padManager = require('ep_etherpad-lite/node/db/PadManager');
 const authorManager = require('ep_etherpad-lite/node/db/AuthorManager');
 const updatePadClients = require('ep_etherpad-lite/node/handler/PadMessageHandler').updatePadClients;
@@ -273,12 +274,47 @@ module.exports = api => {
 			return responseError(response, 'Pad is not found');
 		}
 
-		const edit = yield Edit.create(collectData(request, {
+		const data = collectData(request, {
 			owner: true,
 			body: ['message', 'changes']
 		}, {
 			padId: request.params.id
-		}));
+		});
+		const lastDayEdits = yield Edit.scope('').findAll({
+			attributes: ['changes'],
+			where: {
+				createdAt: {
+					'$gt': moment().subtract(1, 'days').format()
+				},
+				ownerId: data.ownerId
+			}
+		});
+		const lastDayEditsNumber = lastDayEdits.reduce((sum, edit) => {
+			const changeset = edit.changes && edit.changes.changeset;
+			let number = 0;
+
+			if (changeset) {
+				const cs = Changeset.unpack(changeset);
+				const iter = Changeset.opIterator(cs.ops);
+
+				while(iter.hasNext()) {
+					const op = iter.next();
+
+					if (op.opcode === '+' || op.opcode === '-') {
+						number += op.chars;
+					}
+				}
+			}
+
+			return sum + number;
+		}, 0);
+
+		// Limit daily edits to 20 suggested edits or 100,000 chars changes in total
+		if (lastDayEdits.length >= 20 || lastDayEditsNumber >= 100000) {
+			return responseError(response, 'You are reached daily limit of suggested edits, try to submit your edits later');
+		}
+
+		const edit = yield Edit.create(data);
 
 		yield edit.reload({
 			include: [{
