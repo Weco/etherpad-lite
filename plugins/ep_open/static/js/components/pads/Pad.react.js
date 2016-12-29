@@ -80,6 +80,8 @@ export default class Pad extends Base {
 			});
 		}));
 
+		this.subscriptions.push(messages.subscribe('requestRestoreBtnState', this.updateRestoreBtnState.bind(this)));
+
 		this.updateEditbarOffset = this.updateEditbarOffset.bind(this);
 		window.addEventListener('resize', this.updateEditbarOffset);
 	}
@@ -105,6 +107,7 @@ export default class Pad extends Base {
 
 		if (nextProps.currentUser !== this.props.currenUser) {
 			this.updataToolbarState();
+			this.updateRestoreBtnState();
 		}
 
 		if (nextProps.token !== this.props.token) {
@@ -142,6 +145,13 @@ export default class Pad extends Base {
 		const { toolbar } = this.getCurrentEtherpad();
 
 		toolbar && toolbar[isOperationAllowed('write') ? 'enable' : 'disable']();
+	}
+
+	updateRestoreBtnState() {
+		messages.send('toggleRestoreBtnState', {
+			padId: this.props.currentPad.id,
+			isActive: isOperationAllowed('write')
+		});
 	}
 
 	updateEtherpadToken() {

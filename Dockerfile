@@ -18,8 +18,8 @@ RUN npm install \
     ep_headings2 \
     ep_spellcheck \
     ep_sticky_attributes \
-    ep_cristo_restore_revision \
-    ep_tables2
+    ep_tables2 \
+    ep_cristo_tools
 
 # Install node dependencies
 RUN /opt/etherpad/bin/installDeps.sh

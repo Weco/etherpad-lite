@@ -75,6 +75,7 @@ echo "Ensure that all dependencies are up to date...  If this is the first time 
   [ -e ep_links ] || ln -s ../plugins/ep_links ep_links
   [ -e ep_copy_paste_images ] || ln -s ../plugins/ep_copy_paste_images ep_copy_paste_images
   [ -e ep_author_neat ] || ln -s ../plugins/ep_author_neat ep_author_neat
+  [ -e ep_cristo_restore_revision ] || ln -s ../plugins/ep_cristo_restore_revision ep_cristo_restore_revision
   if [ ! -e ep_open ]; then
     ln -s ../plugins/ep_open ep_open;
     cd ep_open;

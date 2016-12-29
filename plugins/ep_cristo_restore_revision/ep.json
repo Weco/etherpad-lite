@@ -1,0 +1,10 @@
+{
+	"parts": [{
+		"name": "ep_vazco_embed",
+		"hooks": {
+			"expressCreateServer": "ep_cristo_restore_revision/index",
+			"eejsBlock_timesliderEditbarRight": "ep_cristo_restore_revision/index",
+			"eejsBlock_timesliderScripts": "ep_cristo_restore_revision/index"
+		}
+	}]
+}
