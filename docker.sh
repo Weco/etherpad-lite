@@ -18,7 +18,7 @@ case "$1" in
 "run")
     docker stop openai-server
     docker rm openai-server
-    docker run --name openai-server -d -p 9002:9001 -e NODE_ENV=production --link openai-db-server:postgres open/openai-server:$TAG
+    docker run --name openai-server -d -p 9003:9001 -e NODE_ENV=production --link openai-db-server:postgres open/openai-server:$TAG
 ;;
 
 "enter")
