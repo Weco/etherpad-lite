@@ -68,7 +68,7 @@ module.exports = api => {
 				pad = yield Pad.scope('complete').create({
 					id: 'root',
 					type: 'root',
-					title: 'Wikineering',
+					title: 'Open AI',
 					permissions: [{
 						role: 'user',
 						operation: 'write'

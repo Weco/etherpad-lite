@@ -343,7 +343,7 @@ export default class Pad extends Base {
 
 	render() {
 		const { currentPad } = this.props;
-		const title = `${currentPad.title && currentPad.id !== 'root' ? (currentPad.title + ' | ') : ''}Wikineering`;
+		const title = `${currentPad.title && currentPad.id !== 'root' ? (currentPad.title + ' | ') : ''}Open AI`;
 		const isReadOnlyChanges = isOperationAllowed('read') && !isOperationAllowed('write') && !!this.state.unsavedChanges;
 		const isAuthorized = !!this.props.currentUser;
 
