@@ -117,7 +117,7 @@ function getUserData(provider, accessToken) {
 			url: 'https://api.github.com/user?access_token=' + accessToken,
 			json: true,
 			headers: {
-				'User-Agent': 'Wikineering App'
+				'User-Agent': 'Guy App'
 			}
 		}).then(data => ({
 			email: data.email,

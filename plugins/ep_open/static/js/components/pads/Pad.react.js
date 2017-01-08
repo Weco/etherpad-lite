@@ -307,9 +307,7 @@ export default class Pad extends Base {
 						'pad__tab--active': isCurrent
 					})}
 					onClick={this.onTabClick.bind(this, pad.id)}>
-					{pad.type === 'root' ? (
-						<i className='pad__tab__logo' />
-					) : (
+					{pad.type === 'root' ? 'Guy' : (
 						isCurrent ? <EditableText text={pad.title} save={title => this.props.actions.updateCurrentPad({ title })} /> : pad.title
 					)}
 				</div>
@@ -343,7 +341,7 @@ export default class Pad extends Base {
 
 	render() {
 		const { currentPad } = this.props;
-		const title = `${currentPad.title && currentPad.id !== 'root' ? (currentPad.title + ' | ') : ''}Wikineering`;
+		const title = `${currentPad.title && currentPad.id !== 'root' ? (currentPad.title + ' | ') : ''}Guy`;
 		const isReadOnlyChanges = isOperationAllowed('read') && !isOperationAllowed('write') && !!this.state.unsavedChanges;
 		const isAuthorized = !!this.props.currentUser;
 
