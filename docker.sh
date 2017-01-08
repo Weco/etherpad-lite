@@ -8,43 +8,43 @@ fi
 case "$1" in
 
 "init")
-    docker create --name wikineering-db-data postgres:9.5 /bin/true
+    docker create --name openai-db-data postgres:9.5 /bin/true
 ;;
 
 "build")
-    docker build --rm -t open/wikineering-server .
+    docker build --rm -t open/openai-server .
 ;;
 
 "run")
-    docker stop wikineering-server
-    docker rm wikineering-server
-    docker run --name wikineering-server -d -p 9002:9001 -e NODE_ENV=production --link wikineering-db-server:postgres open/wikineering-server:$TAG
+    docker stop openai-server
+    docker rm openai-server
+    docker run --name openai-server -d -p 9002:9001 -e NODE_ENV=production --link openai-db-server:postgres open/openai-server:$TAG
 ;;
 
 "enter")
-    docker exec -i -t wikineering-server /bin/bash
+    docker exec -i -t openai-server /bin/bash
 ;;
 
 "logs")
-	docker exec -i wikineering-server bash -c "cat /opt/etherpad/etherpad.out.log"
+	docker exec -i openai-server bash -c "cat /opt/etherpad/etherpad.out.log"
 ;;
 
 "db")
-    docker stop wikineering-db-server
-    docker rm wikineering-db-server
-    docker run --name wikineering-db-server -d --volumes-from wikineering-db-data -v /var/lib/postgresql/data postgres:9.5
+    docker stop openai-db-server
+    docker rm openai-db-server
+    docker run --name openai-db-server -d --volumes-from openai-db-data -v /var/lib/postgresql/data postgres:9.5
 ;;
 
 "migrate")
-    docker exec -i wikineering-server bash -c "cd /opt/etherpad/plugins/ep_open && npm run migrate"
+    docker exec -i openai-server bash -c "cd /opt/etherpad/plugins/ep_open && npm run migrate"
 ;;
 
 "psql")
-    docker run -it --rm --link wikineering-db-server:postgres postgres psql -h postgres -U postgres
+    docker run -it --rm --link openai-db-server:postgres postgres psql -h postgres -U postgres
 ;;
 
 "backup")
-    docker run --rm --volumes-from wikineering-db-data -v $(pwd)/backups:/backups busybox tar cvf /backups/backup_$(date +"%Y-%m-%dT%H-%M-%S").tar /var/lib/postgresql/data
+    docker run --rm --volumes-from openai-db-data -v $(pwd)/backups:/backups busybox tar cvf /backups/backup_$(date +"%Y-%m-%dT%H-%M-%S").tar /var/lib/postgresql/data
 ;;
 
 "restore")
@@ -55,9 +55,9 @@ case "$1" in
        BACKUP_FILE="$(ls -t backups | head -n 1)"
        echo "Backup file: $BACKUP_FILE"
     fi
-    docker stop wikineering-db-server
-    docker run --rm --volumes-from wikineering-db-data -v $(pwd)/backups:/backups busybox tar xvf /backups/$BACKUP_FILE
-    docker start wikineering-db-server
+    docker stop openai-db-server
+    docker run --rm --volumes-from openai-db-data -v $(pwd)/backups:/backups busybox tar xvf /backups/$BACKUP_FILE
+    docker start openai-db-server
 ;;
 
 "clear")
