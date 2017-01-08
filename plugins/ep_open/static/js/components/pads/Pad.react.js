@@ -35,10 +35,11 @@ export default class Pad extends Base {
 		super(props);
 
 		const currentTab = props.params.padId || 'root';
+		const { isFullscreenActive, isHierarchyActive } = window.sessionStorage;
 
 		this.state = {
-			isFullscreenActive: window.sessionStorage.isFullscreenActive === 'true',
-			isHierarchyActive: window.sessionStorage.isHierarchyActive === 'true',
+			isFullscreenActive: isFullscreenActive === 'true',
+			isHierarchyActive: !isHierarchyActive || isHierarchyActive === 'true',
 			unsavedChanges: null
 		};
 		this.tabs = (props.location.query.tabs || currentTab).split(',');
