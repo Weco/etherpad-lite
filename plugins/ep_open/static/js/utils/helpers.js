@@ -80,6 +80,12 @@ export function isOperationAllowed(operation, pad) {
 	return getAllowedOperations(pad || tree.get('currentPad')).indexOf(operation) !== -1;
 }
 
+export function getUserIdFromRole(role) {
+	const regExp = /^user\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/;
+
+	return regExp.test(role) ? role.replace(regExp, '$1') : '';
+}
+
 export function mergedChanges(mine, theirs, base, author) {
 	const patch = {
 		hunks: merge(mine, theirs, base).hunks.map(hunk => {

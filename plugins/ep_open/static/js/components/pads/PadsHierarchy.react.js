@@ -182,6 +182,9 @@ export default class PadsHierarchy extends Base {
 				{list.map(node => {
 					const hasInactive = node.children && node.children.inactive && node.children.inactive.length;
 					const isNodeInactiveVisible = this.state.inactiveExpandedNodes[node.id];
+					const expandedState = this.state.expandedNodes[node.id];
+					// Expand first 2 levels of hierarchy by default
+					const isExpanded = expandedState === true || (path.length < 2 && typeof expandedState === 'undefined');
 
 					return (<div
 						key={path.concat(node.id).join('_')}
@@ -190,7 +193,7 @@ export default class PadsHierarchy extends Base {
 							'pad__hierarchy__node--active': this.props.currentPad.id === node.id,
 							'pad__hierarchy__node--inactive': node.isInactive,
 							'pad__hierarchy__node--has_inactive': hasInactive,
-							'pad__hierarchy__node--expanded': this.state.expandedNodes[node.id],
+							'pad__hierarchy__node--expanded': isExpanded,
 							'pad__hierarchy__node--parent': node.children
 						})}>
 						{node.children ? (

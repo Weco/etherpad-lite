@@ -1,6 +1,7 @@
 import window from 'global';
 import { uniqBy } from 'lodash';
 import request from '../utils/request';
+import { getUserIdFromRole } from '../utils/helpers';
 import { addError, errorHandler } from './errors';
 
 export function getCurrentPadId(tree) {
@@ -216,5 +217,35 @@ export function fetchCurrentPadEdits(tree) {
 				currentPad.set(Object.assign({}, currentPad.get(), { edits }));
 			})
 			.catch(errorHandler(tree));
+	}
+}
+
+export function fetchPadsAuthorizedUsers(tree) {
+	const currentPad = tree.get('currentPad');
+
+	if (currentPad && currentPad.id && !currentPad.authorizedUsers) {
+		const ids = [];
+
+		currentPad.permissions.forEach(permission => {
+			const userId = getUserIdFromRole(permission.role);
+
+			userId && ids.push(userId);
+		});
+
+		if (!ids.length) {
+			return tree.selectedItem('currentPad').set(Object.assign({}, currentPad, { authorizedUsers: [] }));
+		}
+
+		request('/users/', {
+			data: { ids }
+		})
+		.then(response => {
+			const currentPad = tree.selectedItem('currentPad');
+
+			currentPad.set(Object.assign({}, currentPad.get(), {
+				authorizedUsers: response.rows
+			}));
+		})
+		.catch(errorHandler(tree));
 	}
 }
