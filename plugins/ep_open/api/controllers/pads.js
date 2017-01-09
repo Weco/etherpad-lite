@@ -39,7 +39,7 @@ module.exports = api => {
 		if (request.query.ids) {
 			return yield Pad.scope('complete').findAll({
 				where: {
-					id: { $in: request.query.ids.split(',') }
+					id: { $in: request.query.ids }
 				}
 			});
 		} else {

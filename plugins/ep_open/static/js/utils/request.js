@@ -1,5 +1,5 @@
+import window from 'global';
 import fetch from 'isomorphic-fetch';
-import config from '../config';
 import tree from '../store';
 
 function userSyncPromise() {
@@ -29,9 +29,28 @@ function request(url, params = {}) {
 			params.headers['Content-Type'] = 'application/json';
 			params.body = JSON.stringify(params.data);
 		} else {
-			Object.keys(params.data).forEach((key, index) => {
-				url += `${index ? '&' : '?'}${key}=${params.data[key]}`;
-			});
+			url += '?' + Object.keys(params.data).map(key => {
+				let value = params.data[key];
+
+				if (typeof value === 'object') {
+					// If it's array then process data to query string in this way:
+					// arrayKey[]=arrayValue1&arrayKey[]=arrayValue2&arrayKey[]=arrayValue3
+					if (!!value.length) {
+						key += '[]';
+
+						return value.map(valueItem => {
+							return key + '=' + valueItem;
+						}).join('&');
+					// If it's object then stringify it
+					} else {
+						return key + '=' + window.encodeURIComponent(JSON.stringify(value, (key, value) => {
+							return typeof value === 'number' ? '' + value : value;
+						}));
+					}
+				} else {
+					return key + '=' + value;
+				}
+			}).join('&');
 		}
 
 		delete params.data;

@@ -4,11 +4,7 @@ import Select from 'react-select';
 import { branch } from 'baobab-react/decorators';
 import request from '../../utils/request';
 import Base from '../Base.react';
-import * as actions from '../../actions/pads';
 
-@branch({
-	actions
-})
 export default class PadsSearchBox extends Base {
 	static propTypes = {
 		onChange: React.PropTypes.func.isRequired,

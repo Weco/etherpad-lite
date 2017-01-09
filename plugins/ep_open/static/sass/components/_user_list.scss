@@ -1,0 +1,12 @@
+.user_list {
+	overflow: hidden;
+}
+
+.user_list__item {
+	margin-top: 16px;
+
+	.fa-close {
+		float: right;
+		cursor: pointer;
+	}
+}
