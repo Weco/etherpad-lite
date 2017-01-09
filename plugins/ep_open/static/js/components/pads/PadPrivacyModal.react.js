@@ -1,8 +1,10 @@
 import React from 'react';
 import classNames from 'classnames';
 import { branch } from 'baobab-react/decorators';
+import Select from 'react-select';
+import request from '../../utils/request';
 import messages from '../../utils/messages';
-import { formatPermissions, isOperationAllowed } from '../../utils/helpers';
+import { formatPermissions, isOperationAllowed, getUserIdFromRole } from '../../utils/helpers';
 import * as actions from '../../actions/pads';
 import Base from '../Base.react';
 
@@ -20,14 +22,17 @@ export default class PadPrivacyModal extends Base {
 		this.state = {
 			isActive: false,
 			isSaving: false,
+			type: 'public',
 			permissions: {
 				read: 'user',
 				write: 'user'
-			}
+			},
+			authorizedUsers: []
 		};
 
 		if (this.props.currentPad && this.props.currentPad.id) {
 			this.updatePrivacyBtnState(this.props.currentPad);
+			this.props.actions.fetchPadsAuthorizedUsers();
 		}
 
 		this.cancelToggleModalSubscription = messages.subscribe('togglePrivacyModal', this.toggleModal.bind(this));
@@ -37,6 +42,7 @@ export default class PadPrivacyModal extends Base {
 	componentWillReceiveProps(nextProps) {
 		if (this.props.currentPad !== nextProps.currentPad) {
 			this.updatePrivacyBtnState(nextProps.currentPad);
+			this.props.actions.fetchPadsAuthorizedUsers();
 
 			if (this.props.currentPad.id !== nextProps.currentPad.id) {
 				this.setState({ isActive: false });
@@ -44,6 +50,12 @@ export default class PadPrivacyModal extends Base {
 
 			if (this.props.currentPad.permissions !== nextProps.currentPad.permissions) {
 				this.updatePermissions(nextProps.currentPad.permissions);
+			}
+
+			if (this.props.currentPad.authorizedUsers !== nextProps.currentPad.authorizedUsers) {
+				this.setState({
+					authorizedUsers: nextProps.currentPad.authorizedUsers || []
+				});
 			}
 		}
 
@@ -73,13 +85,17 @@ export default class PadPrivacyModal extends Base {
 
 	updatePermissions(permissions) {
 		const formattedPermissions = formatPermissions(permissions);
+		const readRole = formattedPermissions.read.filter(role => !getUserIdFromRole(role))[0];
+		const writeRole = formattedPermissions.write.filter(role => !getUserIdFromRole(role))[0];
+		const type = readRole || writeRole ? 'public' : 'private';
 		const newPermissions = {
-			read: formattedPermissions.read.length ? formattedPermissions.read[0] : 'owner',
-			write: formattedPermissions.write.length ? formattedPermissions.write[0] : 'owner'
+			read: readRole || 'user',
+			write: writeRole || 'user'
 		};
 
 		this.permissions = newPermissions;
 		this.setState({
+			type,
 			permissions: newPermissions,
 			isSaving: false
 		});
@@ -98,14 +114,59 @@ export default class PadPrivacyModal extends Base {
 		});
 	}
 
+	loadUsers(query) {
+		return request('/users', {
+			data: { query }
+		}).then(data => ({
+			options: data.rows.map(user => ({
+				value: user.id,
+				label: `${user.name} (${user.email})`,
+				user
+			}))
+		}));
+	}
+
+	onUsersSelectChange(selected) {
+		this.setState({
+			authorizedUsers: this.state.authorizedUsers.concat([selected.user])
+		});
+	}
+
+	filterUsersSelectOptions(options, filterValue) {
+		const selectedUserIds = this.state.authorizedUsers.map(user => user.id);
+		const ownerId = this.props.currentPad.owner ? this.props.currentPad.owner.id : this.props.currentPad.ownerId;
+
+		return options.filter(option => {
+			const userId = option.user.id;
+
+			return (
+				option.label.toLowerCase().search(filterValue.toLowerCase()) > -1 &&
+				selectedUserIds.indexOf(userId) === -1 &&
+				userId !== ownerId
+			);
+		});
+	}
+
+	deleteAuthorizedUsers(userId) {
+		this.setState({
+			authorizedUsers: this.state.authorizedUsers.filter(user => user.id !== userId)
+		});
+	}
+
 	save(event) {
 		event.preventDefault();
 
-		if (this.state.permissions !== this.permissions && !this.state.isSaving) {
-			const permissions = [];
-			const padId = this.props.currentPad.id;
+		if (this.state.isSaving) {
+			return;
+		}
+
+		const permissions = [];
+		const padId = this.props.currentPad.id;
+
+		if (this.state.type === 'public' && this.state.permissions !== this.permissions) {
 			const readRole = this.state.permissions.read;
 			const writeRole = this.state.permissions.write;
+			const { authorizedUsers } = this.props.currentPad;
 
 			if (readRole !== 'owner') {
 				permissions.push({
@@ -123,10 +184,26 @@ export default class PadPrivacyModal extends Base {
 				});
 			}
 
-			if (padId) {
-				this.setState({ isSaving: true });
-				this.props.actions.updatePermissions(padId, permissions);
-			}
+			authorizedUsers && authorizedUsers.forEach(user => {
+				permissions.push({
+					operation: 'write',
+					role: `user/${user.id}`
+				});
+			});
+		} else if (this.state.type === 'private' && this.state.authorizedUsers !== this.props.currentPad.authorizedUsers) {
+			this.state.authorizedUsers.forEach(user => {
+				permissions.push({
+					operation: 'write',
+					role: `user/${user.id}`
+				});
+			});
+		} else {
+			return;
+		}
+
+		if (padId) {
+			this.setState({ isSaving: true });
+			this.props.actions.updatePermissions(padId, permissions);
 		}
 	}
 
@@ -135,22 +212,61 @@ export default class PadPrivacyModal extends Base {
 			<div className={classNames('pad__modal pad__modal--privacy', { 'pad__modal--active': this.state.isActive })}>
 				<div className='pad__modal__inner'>
 					<div className='pad__modal__content'>
-						<h1 className='pad__modal__title'>Pad privacy</h1>
+						<h1 className='pad__modal__title'>Pad access</h1>
 						<form className='form form--privacy' onSubmit={this.save.bind(this)}>
 							<div className='form__row'>
-								<select valueLink={this.linkState('permissions.read')}>
-									<option value='user'>Any user</option>
-									<option value='authorizedUser'>Authorized user</option>
-									<option value='owner'>Only owner</option>
-								</select> can read this pad.
+								<div className='radios'>
+									<label className='radios__item'>
+										<input className='radios__item__el' type='radio' name='type' value='public' checkedLink={this.linkRadioState('type', 'public')} />
+										<div className='radios__item__btn'>Public</div>
+									</label>
+									<label className='radios__item'>
+										<input className='radios__item__el' type='radio' name='type' value='private' checkedLink={this.linkRadioState('type', 'private')} />
+										<div className='radios__item__btn'>Private</div>
+									</label>
+								</div>
 							</div>
-							<div className='form__row'>
-								<select valueLink={this.linkState('permissions.write')}>
-									<option value='user'>Any user</option>
-									<option value='authorizedUser'>Authorized user</option>
-									<option value='owner'>Only owner</option>
-								</select> can edit this pad.
-							</div>
+							{this.state.type === 'public' ? (
+								<div>
+									<div className='form__row'>
+										<select valueLink={this.linkState('permissions.read')}>
+											<option value='user'>Any user</option>
+											<option value='authorizedUser'>Authorized user</option>
+										</select> can read this pad.
+									</div>
+									<div className='form__row'>
+										<select valueLink={this.linkState('permissions.write')}>
+											<option value='user'>Any user</option>
+											<option value='authorizedUser'>Authorized user</option>
+											<option value='owner'>Only owner</option>
+										</select> can edit this pad.
+									</div>
+								</div>
+							) : (
+								<div className='form__row'>
+									<Select.Async
+										ref='select'
+										placeholder='Users'
+										value={false}
+										isLoading={false}
+										onChange={this.onUsersSelectChange.bind(this)}
+										ignoreCase={false}
+										onBlurResetsInput={false}
+										searchPromptText={false}
+										loadingPlaceholder=''
+										cache={false}
+										filterOptions={this.filterUsersSelectOptions.bind(this)}
+										loadOptions={this.loadUsers} />
+									<div className='user_list'>
+										{this.state.authorizedUsers.map(user => (
+											<div className='user_list__item' key={user.id}>
+												{user.name} ({user.email})
+												<i className='fa fa-close' onClick={this.deleteAuthorizedUsers.bind(this, user.id)}></i>
+											</div>
+										))}
+									</div>
+								</div>
+							)}
 							<button type='submit' className='form__btn btn btn--small'>{this.state.isSaving ? 'Saving' : 'Save'}</button>
 						</form>
 					</div>
