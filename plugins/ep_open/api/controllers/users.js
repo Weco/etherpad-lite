@@ -30,14 +30,12 @@ module.exports = api => {
 		let where = {};
 
 		if (request.query.query) {
-			where = {
-				$or: ['name', 'email', 'surname'].map(attr => ({
-					[attr]: { $iLike: `%${request.query.query}%` }
-				}))
-			};
+			where['$or'] = ['name', 'email'].map(attr => ({
+				[attr]: { $iLike: `%${request.query.query}%` }
+			}));
+		} else if (request.query.ids) {
+			where.id = { $in: request.query.ids };
 		}
-
-		console.log(where);
 
 		return yield User.findAndCountAll({
 			limit: perPage,

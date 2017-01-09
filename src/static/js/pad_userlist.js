@@ -21,6 +21,7 @@
  */
 
 var padutils = require('./pad_utils').padutils;
+var padeditbar = require('./pad_editbar').padeditbar;
 var hooks = require('./pluginfw/hooks');
 
 var myUserInfo = {};
@@ -499,6 +500,7 @@ var paduserlist = (function()
           window.setTimeout(function()
           {
             self.renderMyUserInfo();
+            padeditbar.toggleDropDown('users');
           }, 0);
         });
         self.renderMyUserInfo();
