@@ -2,7 +2,7 @@ TAG="latest"
 
 if [ ! -z "$2" ]
 then
-   TAG="$2"
+    TAG="$2"
 fi
 
 case "$1" in
@@ -18,7 +18,7 @@ case "$1" in
 "run")
     docker stop etherpad-server
     docker rm etherpad-server
-    docker run --name etherpad-server -d -p 9001:9001 -e NODE_ENV=production --link etherpad-db-server:postgres open/etherpad-server:$TAG
+    docker run --name etherpad-server -d -p 9001:9001 -e NODE_ENV=production --link etherpad-db-server:postgres --link etherpad-redis:redis open/etherpad-server:$TAG
 ;;
 
 "enter")
@@ -41,6 +41,12 @@ case "$1" in
 
 "psql")
     docker run -it --rm --link etherpad-db-server:postgres postgres psql -h postgres -U postgres
+;;
+
+"redis")
+    docker stop etherpad-redis
+    docker rm etherpad-redis
+    docker run --name etherpad-redis -d redis
 ;;
 
 "backup")
