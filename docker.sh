@@ -2,7 +2,7 @@ TAG="latest"
 
 if [ ! -z "$2" ]
 then
-   TAG="$2"
+    TAG="$2"
 fi
 
 case "$1" in
@@ -18,7 +18,7 @@ case "$1" in
 "run")
     docker stop wikineering-server
     docker rm wikineering-server
-    docker run --name wikineering-server -d -p 9002:9001 -e NODE_ENV=production --link wikineering-db-server:postgres open/wikineering-server:$TAG
+    docker run --name wikineering-server -d -p 9002:9001 -e NODE_ENV=production --link wikineering-db-server:postgres --link wikineering-redis:redis open/wikineering-server:$TAG
 ;;
 
 "enter")
@@ -41,6 +41,12 @@ case "$1" in
 
 "psql")
     docker run -it --rm --link wikineering-db-server:postgres postgres psql -h postgres -U postgres
+;;
+
+"redis")
+    docker stop wikineering-redis
+    docker rm wikineering-redis
+    docker run --name wikineering-redis -d redis
 ;;
 
 "backup")

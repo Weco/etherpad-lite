@@ -13,13 +13,12 @@ WORKDIR /opt/etherpad
 # Install plugins
 RUN npm install \
     ep_align \
-    ep_comments_page \
+    ether/ep_comments \
     ep_embedmedia \
     ep_headings2 \
     ep_spellcheck \
     ep_sticky_attributes \
-    ep_tables2 \
-    ep_cristo_tools
+    ep_tables2
 
 # Install node dependencies
 RUN /opt/etherpad/bin/installDeps.sh

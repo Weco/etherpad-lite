@@ -223,7 +223,7 @@ export function fetchCurrentPadEdits(tree) {
 export function fetchPadsAuthorizedUsers(tree) {
 	const currentPad = tree.get('currentPad');
 
-	if (currentPad && currentPad.id && !currentPad.authorizedUsers) {
+	if (currentPad && currentPad.id && currentPad.permissions && !currentPad.authorizedUsers) {
 		const ids = [];
 
 		currentPad.permissions.forEach(permission => {

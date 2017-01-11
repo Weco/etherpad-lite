@@ -9,6 +9,7 @@ const gstorage = gcloud.storage({
 	keyFilename: './google_cloud_key_f738e3f5d4ca.json'
 });
 const md5 = require('md5');
+const logger = require('ep_etherpad-lite/node_modules/log4js').getLogger('API');
 
 exports.async = gen => {
 	const fn = co.wrap(gen);
@@ -54,6 +55,8 @@ exports.async = gen => {
 							break;
 					}
 				} catch(e) {}
+
+				logger.error(error);
 
 				response.status(400).send({ error: message });
 			}
