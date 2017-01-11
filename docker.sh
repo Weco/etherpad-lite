@@ -2,7 +2,7 @@ TAG="latest"
 
 if [ ! -z "$2" ]
 then
-   TAG="$2"
+    TAG="$2"
 fi
 
 case "$1" in
@@ -18,7 +18,7 @@ case "$1" in
 "run")
     docker stop guy-server
     docker rm guy-server
-    docker run --name guy-server -d -p 9004:9001 -e NODE_ENV=production --link guy-db-server:postgres open/guy-server:$TAG
+    docker run --name guy-server -d -p 9004:9001 -e NODE_ENV=production --link guy-db-server:postgres --link guy-redis:redis open/guy-server:$TAG
 ;;
 
 "enter")
@@ -41,6 +41,12 @@ case "$1" in
 
 "psql")
     docker run -it --rm --link guy-db-server:postgres postgres psql -h postgres -U postgres
+;;
+
+"redis")
+    docker stop guy-redis
+    docker rm guy-redis
+    docker run --name guy-redis -d redis
 ;;
 
 "backup")

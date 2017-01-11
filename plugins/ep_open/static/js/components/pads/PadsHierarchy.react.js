@@ -49,13 +49,16 @@ export default class PadsHierarchy extends Base {
 			inactiveExpandedNodes
 		};
 		this.width = window.sessionStorage.hierarchyPanelWidth || 240;
-		this.expandPathToCurrentPad(this.props.currentPad);
 
 		if (props.isActive) {
 			this.state.isActive = true;
 			this.props.actions.fetchHierarchy();
 			setTimeout(() => this.updateWidth(this.width));
 		}
+	}
+
+	componentDidMount() {
+		this.expandPathToCurrentPad(this.props.currentPad);
 	}
 
 	componentWillReceiveProps(nextProps) {

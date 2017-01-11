@@ -81,6 +81,14 @@ exports.dbType = "dirty";
 exports.dbSettings = { "filename" : path.join(exports.root, "dirty.db") };
 
 /**
+ * Default redis settings
+ */
+exports.redisSettings = {
+  "host": "localhost",
+  "port": "6379"
+};
+
+/**
  * The default Text of a new pad
  */
 exports.defaultPadText = "Welcome to Etherpad!\n\nThis pad text is synchronized as you type, so that everyone viewing this page sees the same text. This allows you to collaborate seamlessly on documents!\n\nEtherpad on Github: https:\/\/github.com\/ether\/etherpad-lite\n";
