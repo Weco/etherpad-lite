@@ -5,8 +5,15 @@ exports.eejsBlock_timesliderEditbarRight = function (hook_name, args, cb) {
 	args.content += eejs.require('ep_cristo_restore_revision/templates/editbarButtons.ejs', {pad: args.renderContext.req.params.pad}, module);
 	return cb();
 };
+
 exports.eejsBlock_timesliderScripts = function (hook_name, args, cb) {
 	args.content += eejs.require('ep_cristo_restore_revision/templates/scripts.ejs', {}, module);
+	return cb();
+};
+
+exports.eejsBlock_styles = function (hook_name, args, cb) {
+	args.content += '\n<link href="/static/plugins/ep_cristo_restore_revision/static/font-awesome/css/font-awesome.min.css" rel="stylesheet">';
+	args.content += '\n<link href="/static/plugins/ep_cristo_restore_revision/static/css/cristo.css" rel="stylesheet">';
 	return cb();
 };
 
