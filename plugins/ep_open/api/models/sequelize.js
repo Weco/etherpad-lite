@@ -3,6 +3,7 @@
 const _ = require('lodash');
 const Sequelize = require('sequelize');
 const CircularJSON = require('circular-json');
+const logger = require('ep_etherpad-lite/node_modules/log4js').getLogger('API');
 const redis = require('../common/redis');
 const config = require(__dirname + '/../../../../credentials.json');
 const dbConfig = {
@@ -19,41 +20,21 @@ const findAll = sequelize.Model.prototype.findAll;
 
 // Add 5 seconds cache in redis to findAll method
 sequelize.Model.prototype.findAll = function(options) {
-	return new Promise((resolve, reject) => {
-		const scope = {};
-		const formatScope = (target, source, depth) => {
-			depth--;
+	return new sequelize.Promise((resolve, reject) => {
+		const jsonReplacer = function(key, value) {
+			if (value && (value.DAO || value.sequelize)) {
+				return value.name || '';
+			}
 
-			Object.keys(source).forEach(key => {
-				const value = source[key];
-
-				if (typeof value === 'object') {
-					if (value instanceof sequelize.Model) {
-						target[key] = value.name;
-					} else {
-						const isArray = Array.isArray(value);
-
-						target[key] = isArray ? [] : {};
-
-						if (depth > 0) {
-							formatScope(target[key], value, depth);
-						}
-					}
-				} else {
-					target[key] = value;
-				}
-			});
+			return value;
 		};
-
-		formatScope(scope, this.$scope, 3);
-
-		const key = `${this.name}__${CircularJSON.stringify(options)}__${CircularJSON.stringify(scope)}`;
+		const key = `${this.name}__${CircularJSON.stringify(options, jsonReplacer)}__${CircularJSON.stringify(this.$scope, jsonReplacer)}`;
 
 		redis.get(key).then(value => {
 			if (value === null) {
-				console.log('NEW_REQUEST', key);
+				logger.info('New request: ', key);
 
-				findAll.apply(this, arguments)
+				findAll.call(this, options)
 					.then(result => {
 						const isArray = _.isArray(result);
 
@@ -70,7 +51,7 @@ sequelize.Model.prototype.findAll = function(options) {
 					})
 					.catch(reject);
 			} else {
-				console.log('CACHED_REQUEST', key);
+				logger.info('Cached request: ', key);
 				this.$injectScope(options);
 				resolve(_.isArray(value) ? value.map(object => this.build(object, options)) : this.build(value, options));
 			}
