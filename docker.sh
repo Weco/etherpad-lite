@@ -2,7 +2,7 @@ TAG="latest"
 
 if [ ! -z "$2" ]
 then
-   TAG="$2"
+    TAG="$2"
 fi
 
 case "$1" in
@@ -18,7 +18,7 @@ case "$1" in
 "run")
     docker stop openai-server
     docker rm openai-server
-    docker run --name openai-server -d -p 9003:9001 -e NODE_ENV=production --link openai-db-server:postgres open/openai-server:$TAG
+    docker run --name openai-server -d -p 9003:9001 -e NODE_ENV=production --link openai-db-server:postgres --link openai-redis:redis open/openai-server:$TAG
 ;;
 
 "enter")
@@ -41,6 +41,12 @@ case "$1" in
 
 "psql")
     docker run -it --rm --link openai-db-server:postgres postgres psql -h postgres -U postgres
+;;
+
+"redis")
+    docker stop openai-redis
+    docker rm openai-redis
+    docker run --name openai-redis -d redis
 ;;
 
 "backup")

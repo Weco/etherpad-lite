@@ -124,7 +124,7 @@ a img {
   background: linear-gradient(#fff, #f0f0f0);*/
   border: 1px solid #ccc;
   border-radius: 3px;
-  color: #ccc;
+  color: #666;
   cursor: pointer;
   display: inline-block;
   min-height: 18px;
@@ -845,6 +845,9 @@ table#otheruserstable {
 }
 .buttonicon-lock:before {
   content: "\e83a";
+}
+.table-menu {
+  width: auto!important;
 }
 #tbl_menu_list .tbl-icon {
   position: relative;
