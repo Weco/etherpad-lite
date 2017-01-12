@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { findIndex } from 'lodash';
 import Baobab from 'baobab';
 import socket from '../utils/socket';
 
@@ -20,7 +20,8 @@ const tree = new Baobab({
 	currentPad: selectedItem('pads', 'currentPadId'),
 	newPad: null,
 	padsHierarchy: null,
-	padsHistory: []
+	padsHistory: [],
+	privatePadsHierarchy: null
 });
 const socketSyncMap = {
 	rootPadsHierarchy: 'padsHierarchy'
@@ -43,7 +44,7 @@ tree.selectedItem = (itemPath) => {
 		const [[itemsKey], [selectedItemKey]] = monkey.projection;
 		const selectedItemId = tree.get(selectedItemKey);
 		const items = tree.select(itemsKey);
-		const index = _.findIndex(items.get(), { id: selectedItemId });
+		const index = findIndex(items.get(), { id: selectedItemId });
 
 		return items.select(index === -1 ? items.push({}).length - 1 : index);
 	} else {

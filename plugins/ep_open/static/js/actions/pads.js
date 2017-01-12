@@ -81,9 +81,16 @@ export function updatePad(tree, padId, data) {
 			data
 		})
 		.then(updatedPad => {
+			const privatePadsHierarchy = tree.get('privatePadsHierarchy');
+
 			tree.set('pads', tree.get('pads').map(pad => {
 				return pad.id === updatedPad.id ? Object.assign({}, pad, updatedPad) : pad;
 			}));
+
+			// Update private hierarchy
+			if (data.title && privatePadsHierarchy) {
+				tree.set('privatePadsHierarchy', updateHierarchy(privatePadsHierarchy, updatedPad));
+			}
 		})
 		.catch(errorHandler(tree));
 	}
@@ -108,6 +115,32 @@ export function fetchHierarchy(tree) {
 	request('/pads/root/hierarchy')
 		.then(hierarchy => tree.set('padsHierarchy', hierarchy))
 		.catch(errorHandler(tree));
+}
+
+export function fetchPrivateHierarchy(tree) {
+	const currentUser = tree.get('currentUser');
+
+	if (currentUser) {
+		request('/private_hierarchy')
+			.then(hierarchy => tree.set('privatePadsHierarchy', hierarchy))
+			.catch(errorHandler(tree));
+	} else {
+		tree.set('privatePadsHierarchy', null);
+	}
+}
+
+function updateHierarchy(hierarchy, pad) {
+	const step = (nodes) => {
+		return nodes.map(node => (Object.assign({}, node, {
+			title: node.id === pad.id ? pad.title : node.title,
+			children: node.children ? {
+				active: step(node.children.active || []),
+				inactive: step(node.children.inactive || [])
+			} : node.children
+		})));
+	}
+
+	return step(Array.isArray(hierarchy) ? hierarchy : [hierarchy], pad);
 }
 
 export function initPadsHistory(tree) {

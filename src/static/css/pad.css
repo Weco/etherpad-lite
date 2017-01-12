@@ -1332,4 +1332,6 @@ input[type=checkbox] {
   display:none !important;
 }
 
-
+.yui-picker-panel {
+  visibility: hidden;
+}

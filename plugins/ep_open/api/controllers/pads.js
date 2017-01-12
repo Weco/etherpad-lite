@@ -22,6 +22,7 @@ const randomString = helpers.randomString;
 const promiseWrapper = helpers.promiseWrapper;
 const uploadImage = helpers.uploadImage;
 const checkAuth = helpers.checkAuth;
+const sequelize = require('../models/sequelize');
 const User = require('../models/user');
 const Pad = require('../models/pad');
 const Permission = require('../models/permission');
@@ -169,6 +170,43 @@ module.exports = api => {
 		} else {
 			return yield co.wrap(buildHierarchy)(id, {});
 		}
+	}));
+
+	api.get('/private_hierarchy', checkAuth, async(function*(request) {
+		const userId = request.token.user && request.token.user.id;
+		const queryResult = yield sequelize.query(`
+			SELECT
+				id
+			FROM (
+				SELECT
+					pads.id as id,
+					array_agg(permissions.role) as roles
+				FROM pads
+				INNER JOIN permissions ON permissions.pad_id = pads.id
+				WHERE
+					pads.type = 'company'
+					AND (
+						pads.id IN (
+							SELECT
+								pad_id
+							FROM
+								permissions WHERE role='user/${userId}'
+						)
+						OR
+						pads.owner_id = '${userId}'
+					)	
+				GROUP BY pads.id
+			) ss
+			WHERE 'user' NOT IN(SELECT(UNNEST(roles))) AND 'authorizedUser' NOT IN(SELECT(UNNEST(roles)))
+		`);
+		const padIds = queryResult[0].map(pad => pad.id);
+		const pads = [];
+
+		for (var i = 0; i < padIds.length; i++) {
+			pads.push(yield co.wrap(buildHierarchy)(padIds[i], {}))
+		}
+
+		return pads;
 	}));
 
 	api.post('/pads/images', async(function*(request) {
