@@ -290,6 +290,20 @@
 	transform: translateX(-100%);
 	color: #000;
 	z-index: 101;
+
+	.radios {
+		margin-bottom: 20px;
+		border-color: $greyBorderColor;
+	}
+
+	.radios__item:not(:first-child) {
+		border-left: 1px solid $greyBorderColor;
+	}
+
+	.radios__item__el:checked + .radios__item__btn {
+		background-color: $greyColor;
+		color: #000;
+	}
 }
 
 .pad__hierarchy--resizing:after {
@@ -511,7 +525,7 @@
 		.fa-eye,
 		.fa-eye-slash,
 		.editable:not(.editable--active) .fa-pencil {
-			display: none;
+			visibility: hidden;
 		}
 	}
 

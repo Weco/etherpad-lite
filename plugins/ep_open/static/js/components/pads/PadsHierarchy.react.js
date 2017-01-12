@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import classNames from 'classnames';
 import { branch } from 'baobab-react/decorators';
 import Draggable from 'react-draggable';
+import { isEmpty } from 'lodash';
 import Base from '../Base.react';
 import Spinner from '../common/Spinner.react';
 import EditableText from '../common/EditableText.react';
@@ -12,7 +13,9 @@ import * as actions from '../../actions/pads';
 @branch({
 	cursors: {
 		currentPad: ['currentPad'],
-		padsHierarchy: ['padsHierarchy']
+		currentUser: ['currentUser'],
+		padsHierarchy: ['padsHierarchy'],
+		privatePadsHierarchy: ['privatePadsHierarchy']
 	},
 	actions
 })
@@ -46,19 +49,21 @@ export default class PadsHierarchy extends Base {
 			isLoading: false,
 			isResizing: false,
 			expandedNodes,
-			inactiveExpandedNodes
+			inactiveExpandedNodes,
+			type: 'public'
 		};
 		this.width = window.sessionStorage.hierarchyPanelWidth || 240;
 
 		if (props.isActive) {
 			this.state.isActive = true;
 			this.props.actions.fetchHierarchy();
+			this.props.actions.fetchPrivateHierarchy();
 			setTimeout(() => this.updateWidth(this.width));
 		}
 	}
 
 	componentDidMount() {
-		this.expandPathToCurrentPad(this.props.currentPad);
+		this.expandPathToCurrentPad(this.props.tabs);
 	}
 
 	componentWillReceiveProps(nextProps) {
@@ -68,16 +73,29 @@ export default class PadsHierarchy extends Base {
 
 		if (nextProps.isActive && nextProps.isActive !== this.props.isActive && !this.props.padsHierarchy) {
 			this.props.actions.fetchHierarchy();
+			this.props.actions.fetchPrivateHierarchy();
 			this.setState({ isLoading: true });
+		}
+
+		if (nextProps.tabs !== this.props.tabs) {
+			this.expandPathToCurrentPad(nextProps.tabs);
+		}
+
+		if (nextProps.currentUser !== this.props.currentUser) {
+			this.props.actions.fetchPrivateHierarchy();
 		}
 
 		if (nextProps.padsHierarchy !== this.props.padsHierarchy) {
 			this.setState({ isLoading: false });
-			this.expandPathToCurrentPad(this.props.currentPad, nextProps.padsHierarchy);
+			this.expandPathToCurrentPad(this.props.tabs, nextProps.padsHierarchy);
 		}
 
-		if (nextProps.currentPad !== this.props.currentPad) {
-			this.expandPathToCurrentPad(nextProps.currentPad);
+		if (nextProps.privatePadsHierarchy !== this.props.privatePadsHierarchy) {
+			if (isEmpty(nextProps.privatePadsHierarchy)) {
+				this.setState({ type: 'public' });
+			} else {
+				this.expandPathToCurrentPad(this.props.tabs, undefined, nextProps.privatePadsHierarchy);
+			}
 		}
 	}
 
@@ -109,23 +127,43 @@ export default class PadsHierarchy extends Base {
 		window.open(link, '_blank');
 	}
 
-	expandPathToCurrentPad(currentPad, hierarchy = this.props.padsHierarchy) {
-		const currentId = currentPad && currentPad.id;
-
-		if (hierarchy && currentId) {
+	expandPathToCurrentPad(tabs, hierarchy = this.props.padsHierarchy, privateHierarchy = this.props.privatePadsHierarchy) {
+		if (tabs && (hierarchy || privateHierarchy)) {
 			const expandedNodes = Object.assign({}, this.state.expandedNodes);
-			const step = (nodes, path) => {
-				nodes.forEach(node => {
-					if (node.id === currentId) {
-						path.forEach(node => expandedNodes[node] = true);
-					} else if (node.children && node.children.active) {
-						step(node.children.active, path.concat(node.id));
-					}
-				});
-			};
+			const checkPath = (nodes, path) => {
+				while (!isEmpty(nodes) && !isEmpty(path)) {
+					const node = nodes.filter(node => node.id === path[0])[0];
 
-			hierarchy.children && hierarchy.children.active && step(hierarchy.children.active, []);
+					nodes = node && node.children ? node.children.active : [];
+
+					if (node) {
+						path = path.slice(1);
+					}
+				}
+
+				return isEmpty(path);
+			};
+			const isPublicPath = hierarchy && checkPath([hierarchy], tabs);
+			const isPrivatePath = privateHierarchy && checkPath(privateHierarchy, tabs);
+
+			tabs.slice(0, tabs.length - 1).forEach(tabId => expandedNodes[tabId] = true);
+
 			this.setExpandedNodes(expandedNodes);
+
+			// Change active hierarchy type to the one where was found current pad
+			if (isPublicPath !== isPrivatePath) {
+				let type;
+
+				if (isPublicPath && this.state.type === 'private') {
+					type = 'public';
+				}
+
+				if (isPrivatePath && this.state.type === 'public') {
+					type = 'private';
+				}
+
+				type && this.setState({ type });
+			}
 		}
 	}
 
@@ -172,7 +210,7 @@ export default class PadsHierarchy extends Base {
 		this.element.style.width = value;
 	}
 
-	buildChildren(children, path) {
+	buildChildren(children, path, isRoot) {
 		const parentId = path[path.length - 1];
 		const isInactiveVisible = this.state.inactiveExpandedNodes[parentId];
 		const list = [].concat(
@@ -192,7 +230,7 @@ export default class PadsHierarchy extends Base {
 					return (<div
 						key={path.concat(node.id).join('_')}
 						className={classNames('pad__hierarchy__node', {
-							'pad__hierarchy__node--root': path.length === 1,
+							'pad__hierarchy__node--root': isRoot,
 							'pad__hierarchy__node--active': this.props.currentPad.id === node.id,
 							'pad__hierarchy__node--inactive': node.isInactive,
 							'pad__hierarchy__node--has_inactive': hasInactive,
@@ -257,6 +295,8 @@ export default class PadsHierarchy extends Base {
 	}
 
 	render() {
+		const hasPrivateHierarchy = !isEmpty(this.props.privatePadsHierarchy);
+
 		return (
 			<div className={classNames('pad__hierarchy', {
 					'pad__hierarchy--loading' : this.state.isLoading,
@@ -282,7 +322,30 @@ export default class PadsHierarchy extends Base {
 							})}>
 							<div className='pad__hierarchy__node__title' onClick={this.goToPad.bind(this, ['root'])}>Guy</div>
 						</div>
-						{this.props.padsHierarchy ? this.buildChildren(this.props.padsHierarchy.children || {}, ['root']) : null}
+						{hasPrivateHierarchy ? (
+							<div className='radios'>
+								<label className='radios__item'>
+									<input className='radios__item__el' type='radio' name='type' value='public' checkedLink={this.linkRadioState('type', 'public')} />
+									<div className='radios__item__btn'>Open</div>
+								</label>
+								<label className='radios__item'>
+									<input className='radios__item__el' type='radio' name='type' value='private' checkedLink={this.linkRadioState('type', 'private')} />
+									<div className='radios__item__btn'>Private</div>
+								</label>
+							</div>
+						) : ''}
+						<div className={classNames('pad__hierarchy__block', {
+								'hidden': this.state.type !== 'public'
+							})}>
+							{this.props.padsHierarchy ? this.buildChildren(this.props.padsHierarchy.children || {}, ['root'], true) : null}
+						</div>
+						{hasPrivateHierarchy ? (
+							<div className={classNames('pad__hierarchy__block', {
+									'hidden': this.state.type !== 'private'
+								})}>
+								{this.buildChildren({ active: this.props.privatePadsHierarchy }, [], true)}
+							</div>
+						) : ''}
 					</div>
 				</div>
 			</div>

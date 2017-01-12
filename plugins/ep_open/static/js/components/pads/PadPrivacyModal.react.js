@@ -16,6 +16,10 @@ import Base from '../Base.react';
 	actions
 })
 export default class PadPrivacyModal extends Base {
+	static propTypes = {
+		tabs: React.PropTypes.array.isRequired
+	};
+
 	constructor(props) {
 		super(props);
 
@@ -84,14 +88,29 @@ export default class PadPrivacyModal extends Base {
 	}
 
 	updatePermissions(permissions) {
-		const formattedPermissions = formatPermissions(permissions);
-		const readRole = formattedPermissions.read.filter(role => !getUserIdFromRole(role))[0];
-		const writeRole = formattedPermissions.write.filter(role => !getUserIdFromRole(role))[0];
-		const type = readRole || writeRole ? 'public' : 'private';
 		const newPermissions = {
-			read: readRole || 'user',
-			write: writeRole || 'user'
+			read: 'user',
+			write: 'user'
 		};
+		let type = 'public';
+
+		if (permissions) {
+			const formattedPermissions = formatPermissions(permissions);
+			const readRole = formattedPermissions.read.filter(role => !getUserIdFromRole(role))[0];
+			const writeRole = formattedPermissions.write.filter(role => !getUserIdFromRole(role))[0];
+
+			if (!readRole && !writeRole) {
+				type = 'private';
+			}
+
+			if (readRole) {
+				newPermissions.read = readRole;
+			}
+
+			if (writeRole) {
+				newPermissions.write = writeRole;
+			}
+		}
 
 		this.permissions = newPermissions;
 		this.setState({
@@ -202,8 +221,10 @@ export default class PadPrivacyModal extends Base {
 		}
 
 		if (padId) {
+			const { tabs } = this.props;
+
 			this.setState({ isSaving: true });
-			this.props.actions.updatePermissions(padId, permissions);
+			this.props.actions.updatePermissions(padId, permissions, tabs && tabs.slice(tabs.indexOf(padId) + 1));
 		}
 	}
 
