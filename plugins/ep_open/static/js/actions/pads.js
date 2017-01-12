@@ -1,5 +1,5 @@
 import window from 'global';
-import { uniqBy } from 'lodash';
+import { uniqBy, intersection } from 'lodash';
 import request from '../utils/request';
 import { getUserIdFromRole } from '../utils/helpers';
 import { addError, errorHandler } from './errors';
@@ -81,9 +81,16 @@ export function updatePad(tree, padId, data) {
 			data
 		})
 		.then(updatedPad => {
+			const privatePadsHierarchy = tree.get('privatePadsHierarchy');
+
 			tree.set('pads', tree.get('pads').map(pad => {
 				return pad.id === updatedPad.id ? Object.assign({}, pad, updatedPad) : pad;
 			}));
+
+			// Update private hierarchy
+			if (data.title && privatePadsHierarchy) {
+				tree.set('privatePadsHierarchy', updateHierarchy(privatePadsHierarchy, updatedPad));
+			}
 		})
 		.catch(errorHandler(tree));
 	}
@@ -110,6 +117,32 @@ export function fetchHierarchy(tree) {
 		.catch(errorHandler(tree));
 }
 
+export function fetchPrivateHierarchy(tree) {
+	const currentUser = tree.get('currentUser');
+
+	if (currentUser) {
+		request('/private_hierarchy')
+			.then(hierarchy => tree.set('privatePadsHierarchy', hierarchy))
+			.catch(errorHandler(tree));
+	} else {
+		tree.set('privatePadsHierarchy', null);
+	}
+}
+
+function updateHierarchy(hierarchy, pad) {
+	const step = (nodes) => {
+		return nodes.map(node => (Object.assign({}, node, {
+			title: node.id === pad.id ? pad.title : node.title,
+			children: node.children ? {
+				active: step(node.children.active || []),
+				inactive: step(node.children.inactive || [])
+			} : node.children
+		})));
+	}
+
+	return step(Array.isArray(hierarchy) ? hierarchy : [hierarchy], pad);
+}
+
 export function initPadsHistory(tree) {
 	let padsHistory = [];
 
@@ -133,17 +166,42 @@ export function removePadsHistoryEntry(tree, url) {
 	setPadHistory(tree, tree.get('padsHistory').filter(entry => entry.url !== url));
 }
 
-export function updatePermissions(tree, padId, permissions) {
+export function getPermissions(tree, padId) {
+	request(`/pads/${padId}/permissions`)
+		.then(permissions => updatePadData(tree, padId, { permissions }))
+		.catch(errorHandler(tree));
+}
+
+export function updatePermissions(tree, padId, permissions, children) {
 	request(`/pads/${padId}/permissions`, {
 		method: 'PUT',
 		data: { permissions }
 	})
 	.then(permissions => {
-		const pads = tree.get('pads');
+		const roles = permissions.map(permission => permission.role);
 
-		tree.set('pads', pads.map(pad => pad.id === padId ? Object.assign({}, pad, { permissions }) : pad));
+		// If pad is private, then this update should affect all its children, update their permissions too
+		if (roles.indexOf('user') === -1 && roles.indexOf('authorizedUser') === -1 && children) {
+			children.forEach(getPermissions.bind(null, tree));
+		}
+
+		updatePadData(tree, padId, { permissions });
 	})
 	.catch(errorHandler(tree));
+}
+
+function updatePadData(tree, padId, data) {
+	tree.set('pads', tree.get('pads').map(pad => {
+		if (pad.id === padId) {
+			if (typeof data === 'function') {
+				pad = data(Object.assign({}, pad));
+			} else {
+				pad = Object.assign({}, pad, data);
+			}
+		}
+
+		return pad;
+	}));
 }
 
 export function createSuggestedEdits(tree, padId, data) {
@@ -223,8 +281,9 @@ export function fetchCurrentPadEdits(tree) {
 export function fetchPadsAuthorizedUsers(tree) {
 	const currentPad = tree.get('currentPad');
 
-	if (currentPad && currentPad.id && currentPad.permissions && !currentPad.authorizedUsers) {
+	if (currentPad && currentPad.id && currentPad.permissions) {
 		const ids = [];
+		const userIds = currentPad.authorizedUsers && currentPad.authorizedUsers.map(user => user.id);
 
 		currentPad.permissions.forEach(permission => {
 			const userId = getUserIdFromRole(permission.role);
@@ -234,6 +293,8 @@ export function fetchPadsAuthorizedUsers(tree) {
 
 		if (!ids.length) {
 			return tree.selectedItem('currentPad').set(Object.assign({}, currentPad, { authorizedUsers: [] }));
+		} else if (userIds && intersection(userIds, ids).length >= ids.length) {
+			return;
 		}
 
 		request('/users/', {
