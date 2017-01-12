@@ -16,6 +16,10 @@ import Base from '../Base.react';
 	actions
 })
 export default class PadPrivacyModal extends Base {
+	static propTypes = {
+		tabs: React.PropTypes.array.isRequired
+	};
+
 	constructor(props) {
 		super(props);
 
@@ -217,8 +221,10 @@ export default class PadPrivacyModal extends Base {
 		}
 
 		if (padId) {
+			const { tabs } = this.props;
+
 			this.setState({ isSaving: true });
-			this.props.actions.updatePermissions(padId, permissions);
+			this.props.actions.updatePermissions(padId, permissions, tabs && tabs.slice(tabs.indexOf(padId) + 1));
 		}
 	}
 
