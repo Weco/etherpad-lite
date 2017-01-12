@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { range } from 'lodash';
 import React from 'react';
 import Base from '../Base.react';
 
@@ -39,7 +39,7 @@ export default class Pagination extends Base {
 				}
 			}
 
-			const pages = _.range(startRange, endRange + 1);
+			const pages = range(startRange, endRange + 1);
 
 			if (startRange > 1) {
 				startRange !== 2 && pages.splice(0, 0, 'divider');

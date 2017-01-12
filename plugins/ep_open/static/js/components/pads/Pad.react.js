@@ -94,7 +94,14 @@ export default class Pad extends Base {
 		}
 
 		if (nextProps.params.padId !== this.props.params.padId) {
-			this.props.actions.setCurrentPad(nextProps.params.padId || 'root');
+			const padId = nextProps.params.padId || 'root';
+
+			if (!nextProps.location.query.tabs && !this.props.location.query.tabs) {
+				this.tabs = [padId];
+				this.props.actions.fetchPadsByIds(this.tabs);
+			}
+
+			this.props.actions.setCurrentPad(padId);
 			// Clean pad offset until new pad data will be loaded and it will be updated with actual value
 			this.updateCurrentPadOffset(0);
 		}
@@ -367,7 +374,7 @@ export default class Pad extends Base {
 						</Draggable>
 						<div className='pad__content__inner' ref='contentInner'>
 							<PadLinkModal pad={currentPad} createPad={this.props.actions.createPad} />
-							<PadPrivacyModal />
+							<PadPrivacyModal tabs={this.tabs} />
 							<PadEditsModal getCurrentEtherpad={this.getCurrentEtherpad.bind(this)} />
 							{isReadOnlyChanges ? (
 								<div className='pad__message'>

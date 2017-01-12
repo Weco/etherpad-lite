@@ -22,6 +22,7 @@ const randomString = helpers.randomString;
 const promiseWrapper = helpers.promiseWrapper;
 const uploadImage = helpers.uploadImage;
 const checkAuth = helpers.checkAuth;
+const sequelize = require('../models/sequelize');
 const User = require('../models/user');
 const Pad = require('../models/pad');
 const Permission = require('../models/permission');
@@ -171,6 +172,49 @@ module.exports = api => {
 		}
 	}));
 
+	api.get('/private_hierarchy', checkAuth, async(function*(request) {
+		const userId = request.token.user && request.token.user.id;
+		const queryResult = yield sequelize.query(`
+			SELECT
+				id
+			FROM (
+				SELECT
+					pads.id as id,
+					array_agg(permissions.role) as roles
+				FROM pads
+				LEFT OUTER JOIN permissions ON permissions.pad_id = pads.id
+				WHERE
+					pads.type = 'company'
+					AND (
+						pads.id IN (
+							SELECT
+								pad_id
+							FROM
+								permissions WHERE role='user/${userId}'
+						)
+						OR
+						pads.owner_id = '${userId}'
+					)
+				GROUP BY pads.id
+			) ss
+			WHERE
+				roles = '{NULL}'
+				OR (
+					'user' NOT IN(SELECT(UNNEST(roles)))
+					AND
+					'authorizedUser' NOT IN(SELECT(UNNEST(roles)))
+				)
+		`);
+		const padIds = queryResult[0].map(pad => pad.id);
+		const pads = [];
+
+		for (var i = 0; i < padIds.length; i++) {
+			pads.push(yield co.wrap(buildHierarchy)(padIds[i], {}))
+		}
+
+		return pads;
+	}));
+
 	api.post('/pads/images', async(function*(request) {
 		request.checkBody('image', 'Image is required').notEmpty();
 		request.checkErrors();
@@ -214,22 +258,48 @@ module.exports = api => {
 		return results;
 	}));
 
-	api.put('/pads/:id/permissions', checkPermissionsMW('manage'), async(function*(request, response) {
+	api.put('/pads/:id/permissions', checkPermissionsMW('manage'), async(function*(request) {
 		request.checkBody('permissions', 'Permission is required').exists();
 		request.checkErrors();
 
-		const pad = yield Pad.scope('withPermissions').findById(request.params.id);
-		const permissions = request.body.permissions;
+		const userId = request.token && request.token.user && request.token.user.id;
+		const { permissions } = request.body;
+		const padId = request.params.id;
+		const results = yield co.wrap(updatePadPermissions)(request.params.id, permissions, userId);
+
+		// If it's private pad, update all its children with the same permissions
+		if (_.isEmpty(_.intersection(permissions.map(permission => permission.role), ['user', 'authorizedUser']))) {
+			const hierarchy = yield co.wrap(buildHierarchy)(padId, {});
+			const children = [];
+			const getAllChildren = function(node) {
+				(node.children && node.children.active || []).forEach(node => {
+					node.type === 'child' && children.push(node.id);
+					node.children && getAllChildren(node);
+				});
+			};
+
+			getAllChildren(hierarchy);
+
+			for (var i = 0; i < children.length; i++) {
+				yield co.wrap(updatePadPermissions)(children[i], permissions, userId);
+			}
+		}
+
+		return results;
+	}));
+
+	function* updatePadPermissions(padId, permissions, ownerId) {
+		const pad = yield Pad.scope('withPermissions').findById(padId);
 		const results = [];
 
 		if (!pad) {
-			return responseError(response, 'Pad is not found');
+			throw Error('Pad is not found');
 		}
 
 		for (let i = 0; i < permissions.length; i++) {
 			results.push(yield Permission.create(Object.assign({
 				padId: pad.id,
-				ownerId: request.token && request.token.user && request.token.user.id
+				ownerId
 			}, permissions[i])));
 		}
 
@@ -245,7 +315,7 @@ module.exports = api => {
 		}
 
 		return results;
-	}));
+	}
 
 	api.get('/pads/:id/edits', async(function*(request) {
 		const padId = request.params.id;
