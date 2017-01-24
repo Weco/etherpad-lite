@@ -18,7 +18,7 @@ case "$1" in
 "run")
     docker stop openai-server
     docker rm openai-server
-    docker run --name openai-server -d -p 9003:9001 -e NODE_ENV=production --link openai-db-server:postgres --link openai-redis:redis open/openai-server:$TAG
+    docker run --name openai-server -d -p 9003:9001 -e NODE_ENV=production --link openai-db-server:postgres --link openai-redis:redis --restart=always open/openai-server:$TAG
 ;;
 
 "enter")
@@ -32,7 +32,7 @@ case "$1" in
 "db")
     docker stop openai-db-server
     docker rm openai-db-server
-    docker run --name openai-db-server -d --volumes-from openai-db-data -v /var/lib/postgresql/data postgres:9.5
+    docker run --name openai-db-server -d --volumes-from openai-db-data -v /var/lib/postgresql/data --restart=always postgres:9.5
 ;;
 
 "migrate")
@@ -46,7 +46,7 @@ case "$1" in
 "redis")
     docker stop openai-redis
     docker rm openai-redis
-    docker run --name openai-redis -d redis
+    docker run --name openai-redis -d --restart=always redis
 ;;
 
 "backup")
