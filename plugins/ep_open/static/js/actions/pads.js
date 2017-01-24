@@ -1,5 +1,5 @@
 import window from 'global';
-import { uniqBy, intersection } from 'lodash';
+import { uniqBy, intersection, isEqual } from 'lodash';
 import request from '../utils/request';
 import { getUserIdFromRole } from '../utils/helpers';
 import { addError, errorHandler } from './errors';
@@ -291,7 +291,7 @@ export function fetchPadsAuthorizedUsers(tree) {
 			userId && ids.push(userId);
 		});
 
-		if (!ids.length) {
+		if (!ids.length && !isEqual(currentPad.authorizedUsers, [])) {
 			return tree.selectedItem('currentPad').set(Object.assign({}, currentPad, { authorizedUsers: [] }));
 		} else if (userIds && intersection(userIds, ids).length >= ids.length) {
 			return;
