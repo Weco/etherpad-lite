@@ -18,7 +18,7 @@ case "$1" in
 "run")
     docker stop guy-server
     docker rm guy-server
-    docker run --name guy-server -d -p 9004:9001 -e NODE_ENV=production --link guy-db-server:postgres --link guy-redis:redis open/guy-server:$TAG
+    docker run --name guy-server -d -p 9004:9001 -e NODE_ENV=production --link guy-db-server:postgres --link guy-redis:redis --restart=always open/guy-server:$TAG
 ;;
 
 "enter")
@@ -32,7 +32,7 @@ case "$1" in
 "db")
     docker stop guy-db-server
     docker rm guy-db-server
-    docker run --name guy-db-server -d --volumes-from guy-db-data -v /var/lib/postgresql/data postgres:9.5
+    docker run --name guy-db-server -d --volumes-from guy-db-data -v /var/lib/postgresql/data --restart=always postgres:9.5
 ;;
 
 "migrate")
@@ -46,7 +46,7 @@ case "$1" in
 "redis")
     docker stop guy-redis
     docker rm guy-redis
-    docker run --name guy-redis -d redis
+    docker run --name guy-redis -d --restart=always redis
 ;;
 
 "backup")
