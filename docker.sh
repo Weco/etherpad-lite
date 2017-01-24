@@ -18,7 +18,7 @@ case "$1" in
 "run")
     docker stop wikineering-server
     docker rm wikineering-server
-    docker run --name wikineering-server -d -p 9002:9001 -e NODE_ENV=production --link wikineering-db-server:postgres --link wikineering-redis:redis open/wikineering-server:$TAG
+    docker run --name wikineering-server -d -p 9002:9001 -e NODE_ENV=production --link wikineering-db-server:postgres --link wikineering-redis:redis --restart=always open/wikineering-server:$TAG
 ;;
 
 "enter")
@@ -32,7 +32,7 @@ case "$1" in
 "db")
     docker stop wikineering-db-server
     docker rm wikineering-db-server
-    docker run --name wikineering-db-server -d --volumes-from wikineering-db-data -v /var/lib/postgresql/data postgres:9.5
+    docker run --name wikineering-db-server -d --volumes-from wikineering-db-data -v /var/lib/postgresql/data --restart=always postgres:9.5
 ;;
 
 "migrate")
@@ -46,7 +46,7 @@ case "$1" in
 "redis")
     docker stop wikineering-redis
     docker rm wikineering-redis
-    docker run --name wikineering-redis -d redis
+    docker run --name wikineering-redis -d --restart=always redis
 ;;
 
 "backup")
