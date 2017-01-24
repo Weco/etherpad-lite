@@ -18,7 +18,7 @@ case "$1" in
 "run")
     docker stop etherpad-server
     docker rm etherpad-server
-    docker run --name etherpad-server -d -p 9001:9001 -e NODE_ENV=production --link etherpad-db-server:postgres --link etherpad-redis:redis open/etherpad-server:$TAG
+    docker run --name etherpad-server -d -p 9001:9001 -e NODE_ENV=production --link etherpad-db-server:postgres --link etherpad-redis:redis --restart=always open/etherpad-server:$TAG
 ;;
 
 "enter")
@@ -32,7 +32,7 @@ case "$1" in
 "db")
     docker stop etherpad-db-server
     docker rm etherpad-db-server
-    docker run --name etherpad-db-server -d --volumes-from etherpad-db-data -v /var/lib/postgresql/data postgres:9.5
+    docker run --name etherpad-db-server -d --volumes-from etherpad-db-data -v /var/lib/postgresql/data --restart=always postgres:9.5
 ;;
 
 "migrate")
@@ -46,7 +46,7 @@ case "$1" in
 "redis")
     docker stop etherpad-redis
     docker rm etherpad-redis
-    docker run --name etherpad-redis -d redis
+    docker run --name etherpad-redis -d --restart=always redis
 ;;
 
 "backup")
