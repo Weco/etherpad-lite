@@ -44,6 +44,7 @@ export default class Pad extends Base {
 		};
 		this.tabs = (props.location.query.tabs || currentTab).split(',');
 		this.etherpads = {};
+		this.activeEtherpads = [];
 		this.subscriptions = [];
 
 		this.state.isHierarchyActive && props.actions.addLayoutMode('pad_hierarchy');
@@ -65,13 +66,13 @@ export default class Pad extends Base {
 		this.subscriptions.push(messages.subscribe('editorInit', data => {
 			const { pad } = data;
 			const padId = pad.getPadId();
+			let etherpad = this.etherpads[padId] || {};
 
-			this.etherpads[padId] = data;
+			this.etherpads[padId] = etherpad = Object.assign({}, etherpad, data, { isLoaded: true });
 
 			if (padId === this.props.currentPad.id) {
 				this.updataToolbarState();
-				window.editor = data.editor;
-				window.pad = pad;
+				this.preloadChildrenEtherpads(etherpad);
 			}
 
 			pad.isOperationAllowed = isOperationAllowed;
@@ -79,6 +80,8 @@ export default class Pad extends Base {
 				this.etherpads[padId].unsavedChanges = unsavedChanges;
 				this.props.currentPad.id === padId && this.setState({ unsavedChanges });
 			});
+
+			setTimeout(this.loadEtherpads.bind(this), 1000);
 		}));
 
 		this.subscriptions.push(messages.subscribe('requestRestoreBtnState', this.updateRestoreBtnState.bind(this)));
@@ -187,11 +190,11 @@ export default class Pad extends Base {
 			const currentTabIndex = this.tabs.indexOf(this.props.currentPad.id);
 			const clientX = event.clientX - this.refs.iframes.getBoundingClientRect().left;
 
-			if (this.currentIframes) {
-				this.currentIframes.reverse().some(iframeItem => {
-					const isMatch = iframeItem.offset < clientX;
+			if (this.activeEtherpads) {
+				this.activeEtherpads.reverse().some(etherpad => {
+					const isMatch = etherpad.offset < clientX;
 
-					this.goToTab(iframeItem.pad.id);
+					this.goToTab(etherpad.id);
 
 					return isMatch;
 				});
@@ -300,6 +303,102 @@ export default class Pad extends Base {
 		}
 	}
 
+	createEtherpad(id, priority) {
+		this.etherpad = {};
+
+		let etherpad = this.etherpads[id];
+
+		if (!etherpad) {
+			const element = document.createElement('div');
+
+			element.id = id;
+			element.className = 'pad__iframe';
+			element.innerHTML = `
+				<div class="pad__iframe__screen"></div>
+				<iframe class="pad__iframe__el" />
+			`;
+			this.refs.iframes.appendChild(element);
+
+			this.etherpads[id] = etherpad = {
+				id,
+				element
+			};
+		}
+
+		etherpad.priority = priority;
+
+		return etherpad;
+	}
+
+	getEtherpadsList() {
+		return Object.keys(this.etherpads).map(id => this.etherpads[id]);
+	}
+
+	loadEtherpads(startPriority = 1) {
+		const etherpads = this.getEtherpadsList();
+		let isPreviousLoaded = true;
+
+		// Load iframes with etherpads in accordance with priorities, we have 4 priorities:
+		// 1 - current pad
+		// 2 - visible pads before current pad
+		// 3 - children pads of current pad
+		// 4 - currently unused pads
+		for (let i = startPriority; i <= 4; i++) {
+			const priorityEtherpads = etherpads.filter(etherpad => etherpad.priority === i);
+
+			if (isPreviousLoaded) {
+				priorityEtherpads.forEach(etherpad => {
+
+					if (etherpad.element && !etherpad.isLoaded) {
+						const iframeEl = etherpad.element.querySelector('.pad__iframe__el');
+
+						if (!iframeEl.src) {
+							iframeEl.src = `/p/${etherpad.id}?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false`;
+						}
+
+						isPreviousLoaded = false;
+					}
+				});
+			} else {
+				break;
+			}
+		}
+	}
+
+	preloadChildrenEtherpads(etherpad) {
+		if (etherpad && etherpad.editor) {
+			const frame = etherpad.editor.getFrame();
+			const innerFrame = frame && frame.contentDocument.querySelector('[name=ace_inner]');
+			const links = innerFrame && innerFrame.contentDocument.querySelectorAll('.link');
+
+			if (links && links.length) {
+				// Preload 5 first children pads
+				Array.prototype.map.call(links, el => el.getAttribute('data-value'))
+					.filter(id => id && !/^(f|ht)tps?:\/\//i.test(id))
+					.slice(0, 5)
+					.forEach(id => this.createEtherpad(id, 3));
+				this.cleanExcessEtherpads();
+			}
+		}
+	}
+
+	cleanExcessEtherpads(id) {
+		const etherpads = this.getEtherpadsList();
+
+		// Clean etherpads with lower priority if amount of opened iframes with etherpads more than 20
+		if (etherpads.length > 20) {
+			etherpads
+				.sort((a, b) => a.priority > b.priority)
+				.slice(20)
+				.forEach(etherpad => {
+					if (etherpad && etherpad.priority > 2) {
+						etherpad.element && etherpad.element.parentNode.removeChild(etherpad.element);
+						delete this.etherpads[etherpad.id];
+					}
+				});
+		}
+	}
+
 	buildTabs() {
 		const tabs = [this.getPads().map(pad => {
 			if (!pad) {
@@ -405,71 +504,47 @@ export default class Pad extends Base {
 		if (currentId) {
 			const unloadedIframes = [];
 			let padsOffsets = {};
-			this.currentIframes = [];
+			this.activeEtherpads = [];
 
 			try {
 				padsOffsets = JSON.parse(window.localStorage.padsOffsets);
 			} catch (e) {}
 
-			Array.prototype.forEach.call(this.refs.iframes.querySelectorAll('.pad__iframe'), el => el.className = 'pad__iframe');
+			// Hide all etherpads and set the lowest priority
+			Object.keys(this.etherpads).forEach(id => {
+				const etherpad = this.etherpads[id];
+
+				etherpad.element.className = 'pad__iframe';
+				etherpad.priority = 4;
+			});
 
 			this.getPads().some((pad, index) => {
 				if (!pad) return true;
 
 				const isCurrent = pad.id === currentId;
-				let iframe = document.getElementById(pad.id);
+				const etherpad = this.createEtherpad(pad.id, isCurrent ? 1 : 2);
+				const offset = typeof padsOffsets[pad.id] === 'number' ? padsOffsets[pad.id] : 120 * index;
 
-				if (!iframe) {
-					iframe = document.createElement('div');
-					iframe.id = pad.id;
-					iframe.className = 'pad__iframe';
-					iframe.innerHTML = `
-						<div class="pad__iframe__screen"></div>
-						<iframe class="pad__iframe__el" />
-					`;
-					this.refs.iframes.appendChild(iframe);
-				}
-
-				const iframeEl = iframe.querySelector('.pad__iframe__el');
-
-				if (!iframeEl.src) {
-					const source = `/p/${pad.id}?showControls=true&showChat=true&showLineNumbers=true&useMonospaceFont=false`;
-
-					if (isCurrent) {
-						iframeEl.src = source;
-						iframeEl.onload = () => {
-							setTimeout(() => {
-								// Load background pads in 2 seconds after current iframe loading
-								unloadedIframes.forEach(data => data.element.src = data.source);
-								this.updateEditbarOffset();
-							}, 2000);
-						};
-					} else {
-						unloadedIframes.push({
-							element: iframeEl,
-							source
-						});
-					}
-				}
-
-				let offset = typeof padsOffsets[pad.id] === 'number' ? padsOffsets[pad.id] : 120 * index;
-
-				iframe.className = 'pad__iframe pad__iframe--active';
-				iframe.style.zIndex = index + 1;
-				iframe.style.left = offset + 'px';
+				etherpad.element.className = 'pad__iframe pad__iframe--active';
+				etherpad.element.style.zIndex = index + 1;
+				etherpad.element.style.left = offset + 'px';
 
 				if (isCurrent) {
 					this.refs.content.style.left = offset + 'px';
 					this.updateEditbarOffset();
+					etherpad.isLoaded && this.preloadChildrenEtherpads(etherpad);
 				}
 
-				this.currentIframes.push({
-					pad,
+				this.activeEtherpads.push({
+					id: pad.id,
 					offset
 				});
 
 				return isCurrent;
 			});
+
+			this.cleanExcessEtherpads();
+			this.loadEtherpads();
 		}
 	}
 
