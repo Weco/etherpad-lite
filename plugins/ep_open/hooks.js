@@ -86,6 +86,19 @@ exports.expressCreateServer = function(hookName, args) {
 	}
 };
 
+exports.eejsBlock_editbarMenuLeft = function (hookName, context, cb) {
+	const buttons = [
+		'<li class="font-size font-size--plus"><a class="grouped-left" title="Increase font size"><span class="fa fa-plus"></span></a></li>',
+		'<li class="font-size font-size--minus"><a class="grouped-right" title="Decrease font size"><i class="fa fa-minus"></i></a></li>'
+	];
+	const string = buttons.join('') + '<li class="separator"></li>';
+	const regExp = /^(.*?)<li([^<]*?)data-key="clearauthorship">(.*?)<\/li>(.*?)$/m;
+
+	context.content = context.content.replace(/\n|\r/g, '').replace(regExp, '$1' + string + '<li$2data-key="clearauthorship">$3</li>$4');
+
+	return cb();
+}
+
 exports.eejsBlock_editbarMenuRight = function (hookName, context, cb) {
 	const buttons = [
 		'<li id="pad_privacy_settings"><a title="Privacy settings"><span class="buttonicon buttonicon-lock"></span></a></li>',

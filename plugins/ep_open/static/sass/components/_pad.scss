@@ -150,11 +150,13 @@
 }
 
 .pad__iframe {
-	display: none;
+	visibility: hidden;
+	z-index: -1;
 }
 
 .pad__iframe--active {
-	display: block;
+	visibility: visible;
+	z-index: 1;
 }
 
 .pad__iframe__screen {
