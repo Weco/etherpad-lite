@@ -38,5 +38,21 @@ window.$(document).ready(function () {
 				pm.send(btn.requestStateMessageName);
 			}
 		});
+
+		var editorFontSize = 0;
+
+		window.$('.font-size').on('click', function() {
+			var size = Math.max(10, editorFontSize + (window.$(this).hasClass('font-size--plus') ? 1 : -1) * 2);
+
+			window.localStorage.setItem('editorFontSize', size);
+			pm.send('updateFontSize', size);
+		});
+
+		pm.subscribe('updateFontSize', function(size) {
+			var $innerBody = window.$('[name=ace_outer]').contents().find('[name=ace_inner]').contents().find('body');
+
+			editorFontSize = size;
+			$innerBody && $innerBody.css('fontSize', editorFontSize + 'px');
+		});
 	}
 });

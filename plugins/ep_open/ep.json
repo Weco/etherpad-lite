@@ -5,6 +5,7 @@
 		"hooks": {
 			"expressCreateServer": "ep_open/hooks.js",
 			"padUpdate": "ep_open/api/controllers/pads.js",
+			"eejsBlock_editbarMenuLeft": "ep_open/hooks.js",
 			"eejsBlock_editbarMenuRight": "ep_open/hooks.js",
 			"eejsBlock_scripts": "ep_open/hooks.js"
 		},

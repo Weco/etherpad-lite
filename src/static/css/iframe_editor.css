@@ -97,7 +97,7 @@ body.grayedout { background-color: #eee !important }
 #innerdocbody {
   font-size: 14px; /* overridden by body.style */
   font-family:Arial, sans-serif; /* overridden by body.style */
-  line-height: 22px; /* overridden by body.style */
+  line-height: 1.6; /* overridden by body.style */
   background-color: white;
   color: black;
   min-height: 95%;

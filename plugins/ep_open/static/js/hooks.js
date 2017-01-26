@@ -12,6 +12,8 @@ exports.postAceInit = function(hookName, context) {
 		editor: context.ace,
 		pad: context.pad
 	});
+
+	window.top.pm && window.top.pm.send('updateFontSize', parseInt(window.localStorage.editorFontSize || 14));
 };
 
 exports.postToolbarInit = function(hookName, context) {
