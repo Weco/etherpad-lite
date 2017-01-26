@@ -28,7 +28,7 @@ window.$(document).ready(function () {
 
 			$btn = $btn.add($btn.next());
 
-			pm.subscribe(btn.stateMessageName, function(data) {
+			pm.subscribe(btn.stateMessageName + '.etherpad', function(data) {
 				if (data.padId === padId) {
 					$btn[data.isActive ? 'show' : 'hide']()
 				}
@@ -36,6 +36,24 @@ window.$(document).ready(function () {
 
 			if (padId === activePadId) {
 				pm.send(btn.requestStateMessageName);
+			}
+		});
+
+		var editorFontSize = 0;
+
+		window.$('.font-size').on('click', function() {
+			var size = Math.max(10, editorFontSize + (window.$(this).hasClass('font-size--plus') ? 1 : -1) * 2);
+
+			window.localStorage.setItem('editorFontSize', size);
+			pm.send('updateFontSize', size);
+		});
+
+		pm.subscribe('updateFontSize.etherpad', function(size) {
+			if (window) {
+				var $innerBody = window.$('[name=ace_outer]').contents().find('[name=ace_inner]').contents().find('body');
+
+				editorFontSize = size;
+				$innerBody && $innerBody.css('fontSize', editorFontSize + 'px');
 			}
 		});
 	}
