@@ -28,7 +28,7 @@ window.$(document).ready(function () {
 
 			$btn = $btn.add($btn.next());
 
-			pm.subscribe(btn.stateMessageName, function(data) {
+			pm.subscribe(btn.stateMessageName + '.etherpad', function(data) {
 				if (data.padId === padId) {
 					$btn[data.isActive ? 'show' : 'hide']()
 				}
@@ -48,11 +48,13 @@ window.$(document).ready(function () {
 			pm.send('updateFontSize', size);
 		});
 
-		pm.subscribe('updateFontSize', function(size) {
-			var $innerBody = window.$('[name=ace_outer]').contents().find('[name=ace_inner]').contents().find('body');
+		pm.subscribe('updateFontSize.etherpad', function(size) {
+			if (window) {
+				var $innerBody = window.$('[name=ace_outer]').contents().find('[name=ace_inner]').contents().find('body');
 
-			editorFontSize = size;
-			$innerBody && $innerBody.css('fontSize', editorFontSize + 'px');
+				editorFontSize = size;
+				$innerBody && $innerBody.css('fontSize', editorFontSize + 'px');
+			}
 		});
 	}
 });
