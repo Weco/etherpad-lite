@@ -5,8 +5,8 @@ const _ = require('lodash');
 const stream = require('stream');
 const gcloud = require('gcloud');
 const gstorage = gcloud.storage({
-	projectId: 'cool-plasma-778',
-	keyFilename: './google_cloud_key_f738e3f5d4ca.json'
+	projectId: 'open-projects-160605',
+	keyFilename: './google_cloud_key_b4ad5a3e3078.json'
 });
 const md5 = require('md5');
 const logger = require('ep_etherpad-lite/node_modules/log4js').getLogger('API');
